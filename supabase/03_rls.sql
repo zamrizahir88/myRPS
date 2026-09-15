@@ -165,3 +165,16 @@ drop policy if exists audit_select on public.audit_log;
 create policy audit_select on public.audit_log for select
   to authenticated using (public.is_admin());
 -- Writes happen inside security-definer functions, which bypass RLS.
+
+-- ---------- psychometric question bank --------------------------------------
+alter table public.psychometric_items enable row level security;
+
+drop policy if exists items_read on public.psychometric_items;
+create policy items_read on public.psychometric_items for select
+  to authenticated using (public.is_approved() or public.is_admin());
+-- Signed-in and approved only. Not readable by anon, so the instrument is not
+-- served to the open internet.
+
+drop policy if exists items_write on public.psychometric_items;
+create policy items_write on public.psychometric_items for all
+  to authenticated using (public.is_admin()) with check (public.is_admin());

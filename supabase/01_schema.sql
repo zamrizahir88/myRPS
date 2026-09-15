@@ -266,3 +266,17 @@ create table if not exists public.curriculum_requirements (
   required_credits  int not null check (required_credits >= 0),
   primary key (programme_code, intake_year, category)
 );
+
+-- ---------- psychometric question bank ---------------------------------------
+-- The 70 statements live in the database, not in the repo. The instrument is
+-- Chislett & Chapman's Multiple Intelligences Test (businessballs.com), free to
+-- use but licensed "not to be sold or published" — so a public GitHub repo is
+-- the wrong place for it. Seed it with the separate psychometric_items.sql.
+create table if not exists public.psychometric_items (
+  question_no  int primary key check (question_no between 1 and 200),
+  intelligence text not null check (intelligence in
+    ('linguistic','logical','musical','kinesthetic','spatial','interpersonal','intrapersonal')),
+  text_en      text not null,
+  text_ms      text,
+  is_active    boolean not null default true
+);
