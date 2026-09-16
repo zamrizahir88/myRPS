@@ -8,11 +8,9 @@ Built as a personal initiative. **Not an official UniMAP system** — every figu
 in it is entered by the student, and AMIS remains the official record. The
 interface says so on every page.
 
-**New here? Start with [SETUP.md](SETUP.md).** Database setup is one command:
-
-```bash
-npm install && npm run db:setup
-```
+**New here? Start with [SETUP.md](SETUP.md)** — it is a browser-only
+walkthrough, no terminal and nothing to install. Database setup is one
+copy-paste of [`RUN_THIS_IN_SUPABASE.sql`](RUN_THIS_IN_SUPABASE.sql).
 
 ---
 
