@@ -376,10 +376,16 @@ begin
   select value into allowed from public.app_settings where key = 'allowed_email_domain';
   select value into bootstrap from public.app_settings where key = 'bootstrap_admin_email';
 
+  -- allowed_email_domain may hold several domains separated by commas, e.g.
+  -- 'studentmail.unimap.edu.my,unimap.edu.my' so staff can register too.
   if allowed is not null and allowed <> ''
-     and lower(new.email) not like '%@' || lower(allowed)
+     and not exists (
+       select 1
+       from unnest(string_to_array(allowed, ',')) as d
+       where lower(new.email) like '%@' || lower(btrim(d))
+     )
      and lower(new.email) <> lower(coalesce(bootstrap, '')) then
-    raise exception 'Registration is limited to @% addresses.', allowed
+    raise exception 'Registration is limited to these domains: %', allowed
       using errcode = 'check_violation';
   end if;
 

@@ -19,20 +19,25 @@ export default function Register() {
     setError(null)
 
     const address = email.trim().toLowerCase()
-    // Checked again server-side by handle_new_user(); this is only for a
-    // friendlier message than a 500 from the trigger.
-    if (ALLOWED_DOMAIN && !address.endsWith(`@${ALLOWED_DOMAIN}`)) {
-      setError(f(t.auth.domainError, { domain: ALLOWED_DOMAIN }))
-      return
-    }
+    // No domain check here on purpose. The database decides, and it knows
+    // things this page cannot: the RPS's own staff address is allowed through
+    // even though it is not a student domain. A copy of the rule in the
+    // browser can only ever be wrong, and was — it locked the RPS out of
+    // registering at all.
     if (password.length < 8) { setError(t.auth.weak); return }
     if (password !== confirm) { setError(t.auth.mismatch); return }
 
     setBusy(true)
     const { error } = await supabase.auth.signUp({ email: address, password })
     setBusy(false)
-    if (error) setError(error.message)
-    else setDone(true)
+    if (!error) {
+      setDone(true)
+      return
+    }
+    // A rejection from the signup trigger reaches the browser as a generic
+    // "Database error saving new user". Say what it actually means.
+    const generic = /database error|unexpected_failure/i.test(error.message)
+    setError(generic ? f(t.auth.domainError, { domain: ALLOWED_DOMAIN }) : error.message)
   }
 
   if (done) {
@@ -52,7 +57,7 @@ export default function Register() {
         <Field label={t.auth.email} hint={t.auth.domainHint}>
           <input
             className="input" type="email" autoComplete="email" required
-            placeholder={`s221371666@${ALLOWED_DOMAIN}`}
+            placeholder={`s221371666@${ALLOWED_DOMAIN.split(',')[0]}`}
             value={email} onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
