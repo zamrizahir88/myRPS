@@ -9,6 +9,10 @@ export const en = {
     dashboard: 'Dashboard', profile: 'Profile', academic: 'Academic',
     psychometric: 'Psychometric', pillars: '7 Pillars', community: 'Community',
     admin: 'RPS Panel', signOut: 'Sign out', language: 'BM',
+    myStudents: 'My Students', applications: 'Applications',
+    curriculum: 'Curriculum', roleRps: 'RPS',
+    notAdminTitle: 'This account should be the RPS',
+    notAdminBody: 'Your email matches the RPS address configured in Supabase, but this account is not registered as an admin yet. Run FIX_MY_LOGIN.sql in the Supabase SQL Editor, then sign out and sign in again.',
   },
   auth: {
     signIn: 'Sign in', signUp: 'Create account', email: 'Email', password: 'Password',

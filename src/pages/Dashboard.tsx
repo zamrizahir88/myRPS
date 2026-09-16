@@ -11,7 +11,7 @@ import type { ChatMessage } from '../lib/types'
 
 export default function Dashboard() {
   const { t, f, locale } = useI18n()
-  const { profile } = useAuth()
+  const { profile, isAdmin } = useAuth()
   const academic = useAcademic({
     userId: profile?.id,
     programmeCode: profile?.programme_code,
@@ -22,6 +22,9 @@ export default function Dashboard() {
   const [meetings, setMeetings] = useState(0)
   const [hasTest, setHasTest] = useState<boolean | null>(null)
   const [announcements, setAnnouncements] = useState<ChatMessage[]>([])
+  // If this account is the configured RPS address but has no admin rights,
+  // say so plainly instead of silently showing a student dashboard.
+  const [shouldBeAdmin, setShouldBeAdmin] = useState(false)
 
   useEffect(() => {
     if (!profile?.id) return
@@ -37,6 +40,12 @@ export default function Dashboard() {
       setMeetings(m.count ?? 0)
       setHasTest((ps.count ?? 0) > 0)
       setAnnouncements((ann.data as ChatMessage[]) ?? [])
+
+      const { data: setting } = await supabase
+        .from('app_settings').select('value').eq('key', 'bootstrap_admin_email').maybeSingle()
+      const configured = (setting?.value ?? '').trim().toLowerCase()
+      const mine = (profile.email_official ?? '').trim().toLowerCase()
+      setShouldBeAdmin(!!configured && configured === mine)
     })()
   }, [profile?.id])
 
@@ -81,6 +90,12 @@ export default function Dashboard() {
           </a>
         )}
       </div>
+
+      {shouldBeAdmin && !isAdmin && (
+        <Alert tone="warning">
+          <span className="font-medium">{t.nav.notAdminTitle}.</span> {t.nav.notAdminBody}
+        </Alert>
+      )}
 
       {nextStep && (
         <Alert tone="info">

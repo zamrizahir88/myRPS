@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Pending from './pages/Pending'
 import Consent from './pages/Consent'
+import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import ProfilePage from './pages/Profile'
 import Academic from './pages/Academic'
@@ -26,7 +27,8 @@ export default function App() {
       <Route path="/consent" element={<Consent />} />
 
       <Route element={<RequireStudent><Layout /></RequireStudent>}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Home />} />
+        <Route path="my-dashboard" element={<Dashboard />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="academic" element={<Academic />} />
         <Route path="psychometric" element={<Psychometric />} />

@@ -11,6 +11,10 @@ export const ms: Dict = {
     dashboard: 'Papan Utama', profile: 'Profil', academic: 'Akademik',
     psychometric: 'Psikometrik', pillars: '7 Pillars', community: 'Komuniti',
     admin: 'Panel RPS', signOut: 'Log keluar', language: 'EN',
+    myStudents: 'Pelajar Saya', applications: 'Permohonan',
+    curriculum: 'Kurikulum', roleRps: 'RPS',
+    notAdminTitle: 'Akaun ini sepatutnya RPS',
+    notAdminBody: 'E-mel anda sepadan dengan alamat RPS yang ditetapkan dalam Supabase, tetapi akaun ini belum didaftarkan sebagai admin. Jalankan FIX_MY_LOGIN.sql dalam Supabase SQL Editor, kemudian log keluar dan log masuk semula.',
   },
   auth: {
     signIn: 'Log masuk', signUp: 'Daftar akaun', email: 'E-mel', password: 'Kata laluan',
