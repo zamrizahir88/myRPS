@@ -6,6 +6,7 @@ import ProgressBar from './components/ProgressBar'
 import RadarChart from './components/RadarChart'
 import { Logo, Wordmark } from './components/Brand'
 import Footer from './components/Footer'
+import AuthHero from './components/AuthHero'
 import './index.css'
 
 /**
@@ -21,6 +22,7 @@ const scores = {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <MemoryRouter>
     <I18nProvider>
+      <div className="lg:flex"><AuthHero /></div>
       <div className="mx-auto max-w-6xl space-y-5 p-4">
         <div className="flex items-center gap-3">
           <Logo /><Wordmark />

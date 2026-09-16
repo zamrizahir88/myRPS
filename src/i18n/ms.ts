@@ -4,6 +4,7 @@ export const ms: Dict = {
   app: {
     name: 'myRPS',
     tagline: 'Peduli. Bimbing. Cemerlang.',
+    pillarsShort: ['Kepimpinan', 'Patriotisme', 'Kemasyarakatan', 'Akademik', 'Bakat', 'Keusahawanan', 'Kerjaya'],
     disclaimer:
       'Inisiatif peribadi Penasihat Akademik anda. Bukan sistem rasmi UniMAP — semua data di sini dimasukkan sendiri oleh pelajar, dan AMIS kekal sebagai rekod rasmi.',
   },

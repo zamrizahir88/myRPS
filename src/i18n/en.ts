@@ -2,6 +2,7 @@ export const en = {
   app: {
     name: 'myRPS',
     tagline: 'Care. Guide. Shine.',
+    pillarsShort: ['Leadership', 'Patriotism', 'Community', 'Academic', 'Talent', 'Entrepreneurship', 'Career'],
     disclaimer:
       'Personal initiative of your Academic Advisor. Not an official UniMAP system — all data here is entered by students themselves, and AMIS remains the official record.',
   },
