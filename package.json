@@ -11,7 +11,8 @@
     "db:setup": "node scripts/setup-db.mjs",
     "db:check": "node scripts/setup-db.mjs --check",
     "db:bundle": "node scripts/build-combined-sql.mjs",
-    "check:sql": "node scripts/check-editor-sql.mjs"
+    "check:sql": "node scripts/check-editor-sql.mjs",
+    "check:css": "node scripts/check-css-tokens.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

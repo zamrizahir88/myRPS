@@ -78,9 +78,9 @@ export default function Register() {
           {busy ? t.common.loading : t.auth.signUp}
         </button>
 
-        <p className="pt-1 text-center text-xs text-ink-secondary">
+        <p className="pt-1 text-center text-xs text-[color:var(--text-2)]">
           {t.auth.haveAccount}{' '}
-          <Link to="/login" className="font-medium text-series-1 hover:underline">{t.auth.signIn}</Link>
+          <Link to="/login" className="font-medium text-[color:var(--brand)] hover:underline">{t.auth.signIn}</Link>
         </p>
       </form>
     </AuthShell>

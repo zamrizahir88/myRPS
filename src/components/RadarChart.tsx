@@ -20,12 +20,18 @@ export default function RadarChart({ scores, size = 320 }: Props) {
   // The axis labels sit outside the plot, and "Intrapersonal" is wide, so the
   // viewBox is wider than the plot circle. Without this the left and right
   // labels get clipped at the SVG edge.
+  // Labels sit on a ring at 1.14x the radius, with the score on a second line
+  // 13px below. Solving for both edges:
+  //   top:    cy - 1.14R >= 12
+  //   bottom: cy + 1.14R + 13 <= height - 6
+  // With cy = height/2 that needs height >= 2.28R + 38. Deriving R from the
+  // height instead keeps the labels inside the box at every size.
   const labelGutter = 86
   const width = size + labelGutter * 2
-  const height = size + 28
+  const height = size
   const cx = width / 2
   const cy = height / 2
-  const radius = size / 2 - 8
+  const radius = (size - 60) / 2.28
   const rings = [0.25, 0.5, 0.75, 1]
 
   const angleFor = (i: number) => (Math.PI * 2 * i) / INTELLIGENCE_KEYS.length - Math.PI / 2
@@ -95,7 +101,7 @@ export default function RadarChart({ scores, size = 320 }: Props) {
             cy={v.point[1]}
             r={hover === v.key ? 7 : 5}
             fill="var(--series-1)"
-            stroke="var(--surface-1)"
+            stroke="var(--surface)"
             strokeWidth={2}
           />
         ))}
@@ -113,7 +119,7 @@ export default function RadarChart({ scores, size = 320 }: Props) {
                 textAnchor={anchor}
                 dominantBaseline="middle"
                 fontSize={11}
-                fill="var(--text-secondary)"
+                fill="var(--text-2)"
               >
                 {(locale === 'ms' ? def.name_ms : def.name_en).split('-')[0]}
               </text>
@@ -124,7 +130,7 @@ export default function RadarChart({ scores, size = 320 }: Props) {
                 dominantBaseline="middle"
                 fontSize={11}
                 fontWeight={600}
-                fill="var(--text-primary)"
+                fill="var(--text)"
                 className="tnum"
               >
                 {scores[key]}
@@ -148,7 +154,7 @@ export default function RadarChart({ scores, size = 320 }: Props) {
       </svg>
 
       {hover && (
-        <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-lg bg-ink px-3 py-1.5 text-xs text-white shadow-lg">
+        <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-lg bg-navy-700 px-3 py-1.5 text-xs text-white shadow-lg">
           {locale === 'ms' ? DEFINITIONS[hover].name_ms : DEFINITIONS[hover].name_en}:{' '}
           <span className="tnum font-semibold">
             {scores[hover]}/{MAX_SCORE_PER_INTELLIGENCE}

@@ -5,7 +5,7 @@ import { useI18n } from '../../i18n'
 
 const tab = ({ isActive }: { isActive: boolean }) =>
   `rounded-lg px-3 py-1.5 text-sm font-medium ${
-    isActive ? 'bg-ink text-white' : 'bg-surface-plane text-ink-secondary hover:bg-hairline'
+    isActive ? 'bg-navy-700 text-white' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)] hover:bg-[color:var(--border)]'
   }`
 
 export default function AdminLayout() {

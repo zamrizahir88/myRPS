@@ -104,7 +104,7 @@ export default function Psychometric() {
   if (started) {
     return (
       <div className="space-y-4">
-        <div className="sticky top-[104px] z-30 -mx-4 border-b border-hairline bg-surface-plane/95 px-4 py-3 backdrop-blur">
+        <div className="sticky top-[104px] z-30 -mx-4 border-b border-[color:var(--border)] bg-[color:var(--surface-2)] px-4 py-3 backdrop-blur">
           <ProgressBar
             label={t.psychometric.title}
             caption={f(t.psychometric.progress, { done: answered, total: items.length })}
@@ -117,7 +117,7 @@ export default function Psychometric() {
           {items.map((item) => (
             <li key={item.question_no} className="card">
               <p className="mb-3 text-sm">
-                <span className="tnum mr-2 text-ink-muted">{item.question_no}.</span>
+                <span className="tnum mr-2 text-[color:var(--text-3)]">{item.question_no}.</span>
                 {locale === 'ms' ? item.text_ms ?? item.text_en : item.text_en}
               </p>
               <div className="grid grid-cols-4 gap-2">
@@ -128,8 +128,8 @@ export default function Psychometric() {
                     onClick={() => setResponses((r) => ({ ...r, [item.question_no]: v }))}
                     className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                       responses[item.question_no] === v
-                        ? 'border-series-1 bg-series-1 text-white'
-                        : 'border-hairline bg-white text-ink-secondary hover:bg-surface-plane'
+                        ? 'border-[color:var(--brand)] bg-[color:var(--brand)] text-white'
+                        : 'border-[color:var(--border)] bg-white text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
                     }`}
                   >
                     <span className="block text-sm">{v}</span>
@@ -143,7 +143,7 @@ export default function Psychometric() {
           ))}
         </ol>
 
-        <div className="sticky bottom-0 -mx-4 border-t border-hairline bg-white px-4 py-3">
+        <div className="sticky bottom-0 -mx-4 border-t border-[color:var(--border)] bg-white px-4 py-3">
           <button onClick={() => void submit()} disabled={busy || answered < items.length} className="btn-primary w-full">
             {busy ? t.common.loading : t.psychometric.submit}
           </button>
@@ -165,7 +165,7 @@ export default function Psychometric() {
 
         {/* Persona card */}
         <div
-          className="animate-card-rise overflow-hidden rounded-xl border border-hairline bg-white"
+          className="animate-card-rise overflow-hidden rounded-xl border border-[color:var(--border)] bg-white"
           style={{ borderTop: `4px solid ${strength.accent}` }}
         >
           <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
@@ -177,12 +177,12 @@ export default function Psychometric() {
               <h2 className="mt-1 text-2xl font-bold">
                 {locale === 'ms' ? strength.title_ms : strength.title_en}
               </h2>
-              <p className="text-sm text-ink-secondary">
+              <p className="text-sm text-[color:var(--text-2)]">
                 {locale === 'ms' ? strength.name_ms : strength.name_en} ·{' '}
                 <span className="tnum">{scores[latest.strength]}/{MAX_SCORE_PER_INTELLIGENCE}</span>
               </p>
-              <p className="mt-3 text-sm text-ink-secondary">
-                <span className="font-medium text-ink">{t.psychometric.study}:</span>{' '}
+              <p className="mt-3 text-sm text-[color:var(--text-2)]">
+                <span className="font-medium text-[color:var(--text)]">{t.psychometric.study}:</span>{' '}
                 {locale === 'ms' ? strength.study_ms : strength.study_en}
               </p>
             </div>
@@ -228,11 +228,11 @@ export default function Psychometric() {
         {/* Lampiran 3 */}
         <div className="card">
           <h2 className="section-title">{t.psychometric.actionPlan}</h2>
-          <p className="mb-3 mt-1 text-xs text-ink-muted">{t.psychometric.actionHint}</p>
+          <p className="mb-3 mt-1 text-xs text-[color:var(--text-3)]">{t.psychometric.actionHint}</p>
           {plans.length > 0 && (
             <ul className="mb-3 space-y-2">
               {plans.map((p) => (
-                <li key={p.id} className="rounded-lg bg-surface-plane px-3 py-2 text-sm">
+                <li key={p.id} className="rounded-lg bg-[color:var(--surface-2)] px-3 py-2 text-sm">
                   <span className="font-medium">{p.weakness}:</span> {p.action}
                 </li>
               ))}
@@ -254,7 +254,7 @@ export default function Psychometric() {
           </div>
         </div>
 
-        <p className="text-xs leading-relaxed text-ink-muted">
+        <p className="text-xs leading-relaxed text-[color:var(--text-3)]">
           {t.psychometric.attribution} · {t.psychometric.takenOn}{' '}
           {new Date(latest.taken_at).toLocaleDateString(locale === 'ms' ? 'ms-MY' : 'en-MY')}
         </p>
@@ -267,7 +267,7 @@ export default function Psychometric() {
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="text-xl font-semibold">{t.psychometric.title}</h1>
       <div className="card space-y-3">
-        <p className="text-sm text-ink-secondary">{t.psychometric.intro}</p>
+        <p className="text-sm text-[color:var(--text-2)]">{t.psychometric.intro}</p>
         <Alert tone="warning">{t.psychometric.oneAttempt}</Alert>
         {items.length === 0 ? (
           <Alert tone="critical">
@@ -283,7 +283,7 @@ export default function Psychometric() {
           <Alert tone="info">{t.psychometric.locked}</Alert>
         )}
       </div>
-      <p className="text-xs leading-relaxed text-ink-muted">{t.psychometric.attribution}</p>
+      <p className="text-xs leading-relaxed text-[color:var(--text-3)]">{t.psychometric.attribution}</p>
     </div>
   )
 }
@@ -305,7 +305,7 @@ function DefinitionCard({ intelligence, kind }: { intelligence: IntelligenceKey;
         </span>
         <h3 className="font-semibold">{locale === 'ms' ? def.name_ms : def.name_en}</h3>
       </div>
-      <ul className="space-y-1.5 text-sm text-ink-secondary">
+      <ul className="space-y-1.5 text-sm text-[color:var(--text-2)]">
         {(locale === 'ms' ? def.traits_ms : def.traits_en).map((tr) => (
           <li key={tr} className="flex gap-2">
             <span style={{ color: def.accent }}>•</span>
@@ -313,7 +313,7 @@ function DefinitionCard({ intelligence, kind }: { intelligence: IntelligenceKey;
           </li>
         ))}
       </ul>
-      <dl className="mt-3 space-y-1 text-xs text-ink-muted">
+      <dl className="mt-3 space-y-1 text-xs text-[color:var(--text-3)]">
         <div><dt className="inline font-medium">{t.psychometric.figures}: </dt><dd className="inline">{def.figures}</dd></div>
         <div>
           <dt className="inline font-medium">{t.psychometric.careers}: </dt>

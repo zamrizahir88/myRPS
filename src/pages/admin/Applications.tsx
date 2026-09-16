@@ -48,7 +48,7 @@ export default function Applications() {
           <div className="-mx-2 overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-hairline text-left text-xs text-ink-muted">
+                <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                   <th className="px-2 py-2 font-medium">{t.auth.email}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.name}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.matric}</th>
@@ -57,7 +57,7 @@ export default function Applications() {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.id} className="border-b border-hairline/60 last:border-0">
+                  <tr key={r.id} className="border-b border-[color:var(--border)] last:border-0">
                     <td className="px-2 py-2">{r.email_official}</td>
                     <td className="px-2 py-2">{r.full_name ?? t.common.none}</td>
                     <td className="tnum px-2 py-2">{r.matric_no ?? t.common.none}</td>
@@ -74,7 +74,7 @@ export default function Applications() {
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-ink-muted">
+          <p className="mt-3 text-xs text-[color:var(--text-3)]">
             {locale === 'ms'
               ? 'Pendaftaran hanya dibenarkan daripada domain e-mel pelajar yang ditetapkan.'
               : 'Only addresses on the configured student email domain can reach this queue.'}

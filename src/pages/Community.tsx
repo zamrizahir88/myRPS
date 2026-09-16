@@ -124,7 +124,7 @@ export default function Community() {
                   key={key}
                   onClick={() => setBoard(key)}
                   className={`rounded-md px-2 py-1 text-xs font-medium ${
-                    board === key ? 'bg-series-1 text-white' : 'bg-surface-plane text-ink-secondary'
+                    board === key ? 'bg-[color:var(--brand)] text-white' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'
                   }`}
                 >
                   {label}
@@ -141,7 +141,7 @@ export default function Community() {
                   r.user_id === profile?.id ? 'bg-[#eef4fd]' : ''
                 }`}
               >
-                <span className="tnum w-6 shrink-0 text-sm font-semibold text-ink-muted">{i + 1}</span>
+                <span className="tnum w-6 shrink-0 text-sm font-semibold text-[color:var(--text-3)]">{i + 1}</span>
                 <Avatar name={r.full_name} size={28} />
                 <span className="min-w-0 flex-1 truncate text-sm">{r.full_name ?? '—'}</span>
                 {r.badge_pillars_master && (
@@ -154,14 +154,14 @@ export default function Community() {
               </li>
             ))}
           </ol>
-          <p className="mt-3 text-xs leading-relaxed text-ink-muted">{t.community.privacyNote}</p>
+          <p className="mt-3 text-xs leading-relaxed text-[color:var(--text-3)]">{t.community.privacyNote}</p>
         </div>
 
         <div className="card flex h-[32rem] flex-col">
           <h2 className="section-title mb-3">{t.community.chat}</h2>
 
           <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-            {messages.length === 0 && <p className="text-sm text-ink-muted">{t.community.empty}</p>}
+            {messages.length === 0 && <p className="text-sm text-[color:var(--text-3)]">{t.community.empty}</p>}
             {messages.map((m) => {
               const mine = m.user_id === profile?.id
               return (
@@ -173,7 +173,7 @@ export default function Community() {
                       {m.is_announcement && (
                         <span className="chip bg-[#fdf4e0] text-[#7a5600]">{t.community.announcement}</span>
                       )}
-                      <span className="text-[11px] text-ink-muted">
+                      <span className="text-[11px] text-[color:var(--text-3)]">
                         {new Date(m.created_at).toLocaleTimeString(locale === 'ms' ? 'ms-MY' : 'en-MY', {
                           hour: '2-digit', minute: '2-digit',
                         })}
@@ -181,7 +181,7 @@ export default function Community() {
                       {(mine || isAdmin) && (
                         <button
                           onClick={() => void remove(m.id)}
-                          className="text-[11px] text-ink-muted hover:text-status-critical"
+                          className="text-[11px] text-[color:var(--text-3)] hover:text-status-critical"
                         >
                           {t.community.delete}
                         </button>
@@ -201,9 +201,9 @@ export default function Community() {
             <div ref={endRef} />
           </div>
 
-          <div className="mt-3 border-t border-hairline pt-3">
+          <div className="mt-3 border-t border-[color:var(--border)] pt-3">
             {isAdmin && (
-              <label className="mb-2 flex items-center gap-2 text-xs text-ink-secondary">
+              <label className="mb-2 flex items-center gap-2 text-xs text-[color:var(--text-2)]">
                 <input
                   type="checkbox" checked={asAnnouncement}
                   onChange={(e) => setAsAnnouncement(e.target.checked)}
@@ -220,7 +220,7 @@ export default function Community() {
               />
               <button onClick={() => void send()} className="btn-primary shrink-0">{t.community.send}</button>
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-ink-muted">{t.community.rules}</p>
+            <p className="mt-2 text-[11px] leading-relaxed text-[color:var(--text-3)]">{t.community.rules}</p>
           </div>
         </div>
       </div>

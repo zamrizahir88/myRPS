@@ -1,13 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="ms">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="myRPS — Care. Guide. Shine. Academic advisor companion for UniMAP RPS." />
-    <title>myRPS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="myRPS — Care. Guide. Shine. Academic advisor companion for UniMAP RPS students." />
+    <meta name="theme-color" content="#1A2A6C" />
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- iOS has no manifest support for these; it reads its own tags -->
+    <link rel="apple-touch-icon" href="icon-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="myRPS" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <title>myRPS — Care. Guide. Shine.</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Paint the remembered theme before React mounts, so there is no flash
+      // of the wrong background.
+      try {
+        var t = localStorage.getItem('myrps.theme')
+        if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+
+      if ('serviceWorker' in navigator) {
+        addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js', { scope: './' }).catch(function () {})
+        })
+      }
+    </script>
   </body>
 </html>

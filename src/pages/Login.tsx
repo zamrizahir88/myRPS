@@ -63,12 +63,12 @@ export default function Login() {
         </button>
 
         <div className="flex items-center justify-between pt-1 text-xs">
-          <button type="button" onClick={onReset} className="text-series-1 hover:underline">
+          <button type="button" onClick={onReset} className="text-[color:var(--brand)] hover:underline">
             {t.auth.forgot}
           </button>
-          <span className="text-ink-secondary">
+          <span className="text-[color:var(--text-2)]">
             {t.auth.noAccount}{' '}
-            <Link to="/register" className="font-medium text-series-1 hover:underline">
+            <Link to="/register" className="font-medium text-[color:var(--brand)] hover:underline">
               {t.auth.signUp}
             </Link>
           </span>

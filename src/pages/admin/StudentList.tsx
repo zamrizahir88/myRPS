@@ -100,7 +100,7 @@ export default function StudentList() {
           className="input max-w-xs" placeholder={t.common.search}
           value={query} onChange={(e) => setQuery(e.target.value)}
         />
-        <label className="flex items-center gap-2 text-sm text-ink-secondary">
+        <label className="flex items-center gap-2 text-sm text-[color:var(--text-2)]">
           <input type="checkbox" checked={onlyFlagged} onChange={(e) => setOnlyFlagged(e.target.checked)} />
           {t.admin.attention}
         </label>
@@ -111,11 +111,11 @@ export default function StudentList() {
         <Alert tone="good">{t.admin.allClear}</Alert>
       ) : (
         <div className="card">
-          <p className="mb-3 text-xs text-ink-muted">{t.admin.attentionHint}</p>
+          <p className="mb-3 text-xs text-[color:var(--text-3)]">{t.admin.attentionHint}</p>
           <div className="-mx-2 overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="border-b border-hairline text-left text-xs text-ink-muted">
+                <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                   <th className="px-2 py-2 font-medium">{t.admin.name}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.matric}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.credits}</th>
@@ -129,12 +129,12 @@ export default function StudentList() {
               </thead>
               <tbody>
                 {filtered.map(({ row, flags }) => (
-                  <tr key={row.user_id} className="border-b border-hairline/60 last:border-0">
+                  <tr key={row.user_id} className="border-b border-[color:var(--border)] last:border-0">
                     <td className="px-2 py-2 font-medium">{row.full_name ?? t.common.none}</td>
                     <td className="tnum px-2 py-2">{row.matric_no ?? t.common.none}</td>
                     <td className="tnum px-2 py-2">
                       {row.credits_earned}/{row.credits_required}
-                      <span className="ml-1 text-xs text-ink-muted">
+                      <span className="ml-1 text-xs text-[color:var(--text-3)]">
                         ({Math.round((row.credits_earned / Math.max(row.credits_required, 1)) * 100)}%)
                       </span>
                     </td>
@@ -163,7 +163,7 @@ export default function StudentList() {
                       </div>
                     </td>
                     <td className="px-2 py-2 text-right">
-                      <Link to={`/admin/student/${row.user_id}`} className="text-xs text-series-1 hover:underline">
+                      <Link to={`/admin/student/${row.user_id}`} className="text-xs text-[color:var(--brand)] hover:underline">
                         {t.admin.viewProfile}
                       </Link>
                     </td>

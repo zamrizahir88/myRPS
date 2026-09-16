@@ -15,7 +15,7 @@ const STATE_STYLE: Record<RecordState, string> = {
   fail: 'bg-[#fdecec] text-[#8f2727]',
   active: 'bg-[#fdf4e0] text-[#7a5600]',
   exempted: 'bg-[#eef4fd] text-[#184f95]',
-  planned: 'bg-surface-plane text-ink-secondary',
+  planned: 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]',
 }
 
 export default function Academic() {
@@ -152,7 +152,7 @@ export default function Academic() {
       {activeSubjects.length > 0 && (
         <div className="card">
           <h2 className="section-title">{t.academic.targetTitle}</h2>
-          <p className="mb-3 mt-1 text-xs text-ink-muted">{t.academic.targetHint}</p>
+          <p className="mb-3 mt-1 text-xs text-[color:var(--text-3)]">{t.academic.targetHint}</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {activeSubjects.map((s) => (
               <Field key={s.id} label={`${s.code} · ${locale === 'ms' ? s.name_ms ?? s.name_en : s.name_en}`}>
@@ -187,13 +187,13 @@ export default function Academic() {
           if (taken.length === 0) return null
           return (
             <div key={sem} className="card">
-              <h3 className="mb-3 text-sm font-semibold text-ink-secondary">
+              <h3 className="mb-3 text-sm font-semibold text-[color:var(--text-2)]">
                 {locale === 'ms' ? `Semester ${sem}` : `Semester ${sem}`}
               </h3>
               <div className="-mx-2 overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="border-b border-hairline text-left text-xs text-ink-muted">
+                    <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                       <th className="px-2 py-2 font-medium">{t.academic.subject}</th>
                       <th className="px-2 py-2 font-medium">{t.admin.credit}</th>
                       <th className="px-2 py-2 font-medium">{t.academic.semester}</th>
@@ -205,14 +205,14 @@ export default function Academic() {
                   <tbody>
                     {taken.flatMap((s) =>
                       (recordsBySubject.get(s.id) ?? []).map((r) => (
-                        <tr key={r.id} className="border-b border-hairline/60 last:border-0">
+                        <tr key={r.id} className="border-b border-[color:var(--border)] last:border-0">
                           <td className="px-2 py-2">
                             <span className="font-medium">{s.code}</span>
-                            <span className="ml-2 text-ink-secondary">
+                            <span className="ml-2 text-[color:var(--text-2)]">
                               {locale === 'ms' ? s.name_ms ?? s.name_en : s.name_en}
                             </span>
                             {r.attempt_no > 1 && (
-                              <span className="ml-2 text-xs text-ink-muted">
+                              <span className="ml-2 text-xs text-[color:var(--text-3)]">
                                 ({t.academic.repeat} {r.attempt_no})
                               </span>
                             )}
@@ -224,7 +224,7 @@ export default function Academic() {
                             <span className={`chip ${STATE_STYLE[r.state]}`}>{t.academic[r.state]}</span>
                           </td>
                           <td className="px-2 py-2 text-right whitespace-nowrap">
-                            <button onClick={() => setEditing(r)} className="text-xs text-series-1 hover:underline">
+                            <button onClick={() => setEditing(r)} className="text-xs text-[color:var(--brand)] hover:underline">
                               {t.common.edit}
                             </button>
                             <button

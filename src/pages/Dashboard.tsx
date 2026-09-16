@@ -143,7 +143,7 @@ export default function Dashboard() {
         <StatTile
           label={t.dash.psychometric}
           value={
-            hasTest ? '✓' : <Link to="/psychometric" className="text-series-1 text-base underline">{t.dash.takeNow}</Link>
+            hasTest ? '✓' : <Link to="/psychometric" className="text-[color:var(--brand)] text-base underline">{t.dash.takeNow}</Link>
           }
           sub={hasTest ? undefined : t.dash.notTaken}
         />
@@ -154,9 +154,9 @@ export default function Dashboard() {
           <h2 className="section-title mb-3">{t.dash.announcements}</h2>
           <ul className="space-y-3">
             {announcements.map((a) => (
-              <li key={a.id} className="border-l-2 border-series-1 pl-3 text-sm">
+              <li key={a.id} className="border-l-2 border-[color:var(--brand)] pl-3 text-sm">
                 <p className="whitespace-pre-wrap">{a.body}</p>
-                <p className="mt-1 text-xs text-ink-muted">
+                <p className="mt-1 text-xs text-[color:var(--text-3)]">
                   {RPS_NAME} · {new Date(a.created_at).toLocaleDateString(locale === 'ms' ? 'ms-MY' : 'en-MY')}
                 </p>
               </li>

@@ -89,7 +89,7 @@ export default function Pillars() {
           value={completions.length} max={PILLARS.length} height={10}
           color={completions.length >= 7 ? 'var(--status-good)' : 'var(--series-1)'}
         />
-        <p className="mb-4 mt-2 text-xs text-ink-muted">{t.pillars.subtitle}</p>
+        <p className="mb-4 mt-2 text-xs text-[color:var(--text-3)]">{t.pillars.subtitle}</p>
 
         <ul className="grid gap-2 sm:grid-cols-2">
           {PILLARS.map((p, i) => {
@@ -100,7 +100,7 @@ export default function Pillars() {
                   onClick={() => void togglePillar(p.code)}
                   disabled={done?.verified}
                   className={`flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors ${
-                    done ? 'border-status-good/40 bg-[#f2fbf2]' : 'border-hairline bg-white hover:bg-surface-plane'
+                    done ? 'border-status-good/40 bg-[#f2fbf2]' : 'border-[color:var(--border)] bg-white hover:bg-[color:var(--surface-2)]'
                   } disabled:cursor-not-allowed`}
                 >
                   <span
@@ -116,10 +116,10 @@ export default function Pillars() {
                       P{i + 1} · {locale === 'ms' ? p.name_ms : p.name_en}
                     </span>
                     {done?.activity_name && (
-                      <span className="block text-xs text-ink-secondary">{done.activity_name}</span>
+                      <span className="block text-xs text-[color:var(--text-2)]">{done.activity_name}</span>
                     )}
                     {done && (
-                      <span className={`chip mt-1 ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-surface-plane text-ink-secondary'}`}>
+                      <span className={`chip mt-1 ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
                         {done.verified ? `✓ ${t.pillars.verified}` : t.pillars.pendingVerify}
                       </span>
                     )}
@@ -141,36 +141,36 @@ export default function Pillars() {
             {t.pillars.addMeeting}
           </button>
         </div>
-        <p className="mb-4 text-xs text-ink-muted">{t.pillars.meetingsHint}</p>
+        <p className="mb-4 text-xs text-[color:var(--text-3)]">{t.pillars.meetingsHint}</p>
 
         {meetings.length === 0 ? (
           <Alert tone="info">{t.pillars.noMeetings}</Alert>
         ) : (
           <ul className="space-y-3">
             {meetings.map((m) => (
-              <li key={m.id} className="rounded-lg border border-hairline p-3">
+              <li key={m.id} className="rounded-lg border border-[color:var(--border)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium">
                     {new Date(m.meeting_at).toLocaleString(locale === 'ms' ? 'ms-MY' : 'en-MY', {
                       dateStyle: 'medium', timeStyle: 'short',
                     })}
                   </span>
-                  <span className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-surface-plane text-ink-secondary'}`}>
+                  <span className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
                     {m.verified ? `✓ ${t.pillars.verifiedTag}` : t.pillars.unverifiedTag}
                   </span>
                 </div>
                 <p className="mt-1 text-sm">{m.topic}</p>
-                <p className="text-xs text-ink-muted">{m.location}</p>
-                {m.student_notes && <p className="mt-1 text-xs text-ink-secondary">{m.student_notes}</p>}
+                <p className="text-xs text-[color:var(--text-3)]">{m.location}</p>
+                {m.student_notes && <p className="mt-1 text-xs text-[color:var(--text-2)]">{m.student_notes}</p>}
                 {m.rps_notes && (
-                  <p className="mt-2 rounded bg-surface-plane px-2 py-1.5 text-xs">
+                  <p className="mt-2 rounded bg-[color:var(--surface-2)] px-2 py-1.5 text-xs">
                     <span className="font-medium">RPS:</span> {m.rps_notes}
                   </p>
                 )}
                 {!m.verified && (
                   <button
                     onClick={() => setEditingMeeting({ ...m, meeting_at: m.meeting_at.slice(0, 16) })}
-                    className="mt-2 text-xs text-series-1 hover:underline"
+                    className="mt-2 text-xs text-[color:var(--brand)] hover:underline"
                   >
                     {t.common.edit}
                   </button>

@@ -94,15 +94,15 @@ export default function StudentDetail() {
   }
 
   const field = (label: string, value: unknown) => (
-    <div className="border-b border-hairline/60 py-1.5">
-      <dt className="text-xs text-ink-muted">{label}</dt>
+    <div className="border-b border-[color:var(--border)] py-1.5">
+      <dt className="text-xs text-[color:var(--text-3)]">{label}</dt>
       <dd className="text-sm">{value ? String(value) : t.common.none}</dd>
     </div>
   )
 
   return (
     <div className="space-y-5">
-      <Link to="/admin" className="text-xs text-series-1 hover:underline">← {t.admin.back}</Link>
+      <Link to="/admin" className="text-xs text-[color:var(--brand)] hover:underline">← {t.admin.back}</Link>
       {error && <Alert tone="critical">{error}</Alert>}
       {notice && <Alert tone="good">{notice}</Alert>}
 
@@ -110,11 +110,11 @@ export default function StudentDetail() {
         <Avatar name={profile.full_name} url={avatarUrl} size={64} />
         <div className="min-w-0">
           <h2 className="text-lg font-semibold">{profile.full_name ?? t.common.none}</h2>
-          <p className="tnum text-sm text-ink-secondary">
+          <p className="tnum text-sm text-[color:var(--text-2)]">
             {profile.matric_no} · {profile.programme_code} · {profile.intake_year}
           </p>
           {profile.career_goal && (
-            <p className="mt-1 text-sm text-ink-secondary">
+            <p className="mt-1 text-sm text-[color:var(--text-2)]">
               <span className="font-medium">{t.profile.career}:</span> {profile.career_goal}
             </p>
           )}
@@ -171,14 +171,14 @@ export default function StudentDetail() {
                 {locale === 'ms' ? DEFINITIONS[latest.weakness].name_ms : DEFINITIONS[latest.weakness].name_en}
               </p>
               {attempts.length > 1 && (
-                <p className="mt-1 text-xs text-ink-muted">
+                <p className="mt-1 text-xs text-[color:var(--text-3)]">
                   {attempts.length} {locale === 'ms' ? 'percubaan' : 'attempts'}
                 </p>
               )}
               {plans.length > 0 && (
                 <ul className="mt-3 w-full space-y-1 text-sm">
                   {plans.map((p) => (
-                    <li key={p.id} className="rounded bg-surface-plane px-2 py-1.5">
+                    <li key={p.id} className="rounded bg-[color:var(--surface-2)] px-2 py-1.5">
                       <span className="font-medium">{p.weakness}:</span> {p.action}
                     </li>
                   ))}
@@ -197,21 +197,21 @@ export default function StudentDetail() {
               const done = pillars.find((c) => c.pillar_code === p.code)
               return (
                 <li key={p.code} className="flex items-center justify-between gap-2 text-sm">
-                  <span className={done ? '' : 'text-ink-muted'}>
+                  <span className={done ? '' : 'text-[color:var(--text-3)]'}>
                     P{i + 1} · {locale === 'ms' ? p.name_ms : p.name_en}
                     {done?.activity_name && (
-                      <span className="block text-xs text-ink-muted">{done.activity_name}</span>
+                      <span className="block text-xs text-[color:var(--text-3)]">{done.activity_name}</span>
                     )}
                   </span>
                   {done ? (
                     <button
                       onClick={() => void togglePillarVerify(done)}
-                      className={`chip ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-surface-plane text-ink-secondary'}`}
+                      className={`chip ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
                     >
                       {done.verified ? `✓ ${t.pillars.verifiedTag}` : t.admin.verifyMeeting}
                     </button>
                   ) : (
-                    <span className="text-xs text-ink-muted">{t.pillars.notYet}</span>
+                    <span className="text-xs text-[color:var(--text-3)]">{t.pillars.notYet}</span>
                   )}
                 </li>
               )
@@ -227,7 +227,7 @@ export default function StudentDetail() {
         ) : (
           <ul className="space-y-3">
             {meetings.map((m) => (
-              <li key={m.id} className="rounded-lg border border-hairline p-3">
+              <li key={m.id} className="rounded-lg border border-[color:var(--border)] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium">
                     {new Date(m.meeting_at).toLocaleString(locale === 'ms' ? 'ms-MY' : 'en-MY', {
@@ -236,14 +236,14 @@ export default function StudentDetail() {
                   </span>
                   <button
                     onClick={() => void toggleVerify(m)}
-                    className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-surface-plane text-ink-secondary'}`}
+                    className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
                   >
                     {m.verified ? `✓ ${t.pillars.verifiedTag}` : t.admin.verifyMeeting}
                   </button>
                 </div>
                 <p className="mt-1 text-sm">{m.topic}</p>
-                <p className="text-xs text-ink-muted">{m.location}</p>
-                {m.student_notes && <p className="mt-1 text-xs text-ink-secondary">{m.student_notes}</p>}
+                <p className="text-xs text-[color:var(--text-3)]">{m.location}</p>
+                {m.student_notes && <p className="mt-1 text-xs text-[color:var(--text-2)]">{m.student_notes}</p>}
                 <textarea
                   className="input mt-2 text-xs" rows={2}
                   placeholder={t.admin.rpsNotes}
@@ -261,7 +261,7 @@ export default function StudentDetail() {
         <div className="-mx-2 overflow-x-auto">
           <table className="w-full min-w-[620px] text-sm">
             <thead>
-              <tr className="border-b border-hairline text-left text-xs text-ink-muted">
+              <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                 <th className="px-2 py-2 font-medium">{t.academic.subject}</th>
                 <th className="px-2 py-2 font-medium">{t.admin.credit}</th>
                 <th className="px-2 py-2 font-medium">{t.academic.semester}</th>
@@ -273,11 +273,11 @@ export default function StudentDetail() {
               {academic.records.map((r) => {
                 const s = academic.subjectMap.get(r.subject_id)
                 return (
-                  <tr key={r.id} className="border-b border-hairline/60 last:border-0">
+                  <tr key={r.id} className="border-b border-[color:var(--border)] last:border-0">
                     <td className="px-2 py-2">
                       <span className="font-medium">{s?.code}</span>{' '}
-                      <span className="text-ink-secondary">{s?.name_en}</span>
-                      {r.attempt_no > 1 && <span className="ml-1 text-xs text-ink-muted">#{r.attempt_no}</span>}
+                      <span className="text-[color:var(--text-2)]">{s?.name_en}</span>
+                      {r.attempt_no > 1 && <span className="ml-1 text-xs text-[color:var(--text-3)]">#{r.attempt_no}</span>}
                     </td>
                     <td className="tnum px-2 py-2">{s?.credit}</td>
                     <td className="px-2 py-2 text-xs">{semesterLabel(r.semester_taken, locale)}</td>

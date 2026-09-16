@@ -148,7 +148,7 @@ export default function ProfilePage() {
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) void onUpload(f) }}
               />
             </label>
-            <p className="mt-1 text-xs text-ink-muted">{t.profile.photoHint}</p>
+            <p className="mt-1 text-xs text-[color:var(--text-3)]">{t.profile.photoHint}</p>
           </div>
         </div>
       </section>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
           {select('marital_status', t.profile.marital, ['Bujang', 'Berkahwin'])}
           {select('parental_income', t.profile.income, INCOME_BANDS)}
         </div>
-        <p className="mt-3 text-xs text-ink-muted">{t.consent.sensitive}</p>
+        <p className="mt-3 text-xs text-[color:var(--text-3)]">{t.consent.sensitive}</p>
       </section>
 
       <section className="card">
@@ -276,7 +276,7 @@ export default function ProfilePage() {
       </div>
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title={t.profile.deleteAccount}>
-        <p className="text-sm text-ink-secondary">{t.profile.deleteConfirm}</p>
+        <p className="text-sm text-[color:var(--text-2)]">{t.profile.deleteConfirm}</p>
         <input
           className="input mt-3" value={deleteText}
           onChange={(e) => setDeleteText(e.target.value)} placeholder="DELETE"

@@ -21,13 +21,13 @@ export default function ProgressBar({
     <div>
       {(label || caption) && (
         <div className="mb-1.5 flex items-baseline justify-between gap-3">
-          {label && <span className="text-sm font-medium text-ink">{label}</span>}
-          {caption && <span className="tnum text-xs text-ink-secondary">{caption}</span>}
+          {label && <span className="text-sm font-semibold">{label}</span>}
+          {caption && <span className="tnum text-xs text-[color:var(--text-2)]">{caption}</span>}
         </div>
       )}
       <div
-        className="w-full overflow-hidden rounded-full bg-[#eeeeea]"
-        style={{ height }}
+        className="w-full overflow-hidden rounded-full"
+        style={{ height, background: 'var(--track)' }}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}

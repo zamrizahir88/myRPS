@@ -31,7 +31,7 @@ export default function Consent() {
 
   return (
     <AuthShell title={t.consent.title}>
-      <div className="space-y-3 text-sm leading-relaxed text-ink-secondary">
+      <div className="space-y-3 text-sm leading-relaxed text-[color:var(--text-2)]">
         <p>{t.consent.body}</p>
         <Alert tone="warning">{t.consent.sensitive}</Alert>
         <p>{t.consent.retention}</p>

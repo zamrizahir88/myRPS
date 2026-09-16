@@ -89,7 +89,7 @@ export default function Curriculum() {
         <div className="-mx-2 overflow-x-auto">
           <table className="w-full min-w-[760px] text-sm">
             <thead>
-              <tr className="border-b border-hairline text-left text-xs text-ink-muted">
+              <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                 <th className="px-2 py-2 font-medium">{t.admin.code}</th>
                 <th className="px-2 py-2 font-medium">{t.admin.nameEn}</th>
                 <th className="px-2 py-2 font-medium">{t.admin.credit}</th>
@@ -100,18 +100,18 @@ export default function Curriculum() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className="border-b border-hairline/60 last:border-0">
+                <tr key={r.id} className="border-b border-[color:var(--border)] last:border-0">
                   <td className="px-2 py-2 font-medium">{r.code}</td>
                   <td className="px-2 py-2">
                     {r.name_en}
-                    {!r.is_graded && <span className="ml-2 chip bg-surface-plane text-ink-secondary">Pass/Fail</span>}
-                    {!r.counts_to_total && <span className="ml-2 chip bg-surface-plane text-ink-secondary">Audit</span>}
+                    {!r.is_graded && <span className="ml-2 chip bg-[color:var(--surface-2)] text-[color:var(--text-2)]">Pass/Fail</span>}
+                    {!r.counts_to_total && <span className="ml-2 chip bg-[color:var(--surface-2)] text-[color:var(--text-2)]">Audit</span>}
                   </td>
                   <td className="tnum px-2 py-2">{r.credit}</td>
                   <td className="px-2 py-2 text-xs">{t.academic[r.category]}</td>
                   <td className="tnum px-2 py-2">{r.planned_semester ?? '—'}</td>
                   <td className="px-2 py-2 text-right whitespace-nowrap">
-                    <button onClick={() => setEditing(r)} className="text-xs text-series-1 hover:underline">
+                    <button onClick={() => setEditing(r)} className="text-xs text-[color:var(--brand)] hover:underline">
                       {t.common.edit}
                     </button>
                     <button onClick={() => void remove(r.id)} className="ml-3 text-xs text-status-critical hover:underline">
@@ -124,7 +124,7 @@ export default function Curriculum() {
           </table>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-3 text-xs text-ink-secondary">
+        <div className="mt-3 flex flex-wrap gap-3 text-xs text-[color:var(--text-2)]">
           {CATEGORIES.filter((c) => totals[c]).map((c) => (
             <span key={c}>
               {t.academic[c]}: <span className="tnum font-medium">{totals[c]}</span>
