@@ -136,17 +136,35 @@ The website needs two values from Supabase.
 
 ### Get them
 
-Supabase left sidebar → **Project Settings** (the gear at the bottom) →
-**API**.
+Supabase left sidebar → **Project Settings** (the gear at the bottom).
 
-Copy these two, one at a time:
+**The Project URL** is under **General** or **Data API**, and looks like
+`https://abcdefghijk.supabase.co`.
 
-- **Project URL** — looks like `https://abcdefghijk.supabase.co`
-- **anon public** key — a very long string starting with `eyJ`
+**The key** is under **API Keys**. You will see two kinds:
 
-> On the same page there is a **service_role** key. **Never** copy that one
-> anywhere. It ignores all the security rules. The `anon` key is the safe one
-> and is meant to be public.
+| What you see | Use it? |
+|---|---|
+| **Publishable key** — `sb_publishable_...` | ✅ **Yes, this one.** |
+| *(older projects)* **anon public** — `eyJhbGci...` | ✅ Same thing, older format |
+| **Secret key** — `sb_secret_...` | ❌ **Never.** |
+| *(older projects)* **service_role** — `eyJhbGci...` | ❌ **Never.** |
+
+> ### About the secret key
+>
+> The publishable key is *designed* to be public — it sits inside the website
+> where anyone can read it, and that is fine, because the security rules you
+> installed in Part 2 decide what it is allowed to see.
+>
+> The **secret key is the opposite**: it ignores every one of those rules. Anyone
+> holding it can read every student's IC number, delete all records, and make
+> themselves an admin. myRPS never uses it, so you never need to copy it
+> anywhere.
+>
+> **If you ever paste a secret key somewhere it shouldn't be** — a chat, an
+> email, a screenshot, a file — go to **Project Settings → API Keys**, find it
+> under Secret keys, and **revoke or rotate** it. That instantly makes the
+> leaked copy useless. Nothing in myRPS breaks.
 
 ### Put them in GitHub
 
@@ -158,7 +176,7 @@ Copy these two, one at a time:
 | Name | Secret |
 |---|---|
 | `VITE_SUPABASE_URL` | your Project URL |
-| `VITE_SUPABASE_ANON_KEY` | your anon public key |
+| `VITE_SUPABASE_ANON_KEY` | your **publishable** key (`sb_publishable_...`) |
 
 5. Now click the **Variables** tab (next to Secrets) → **New repository
    variable**, three times:
@@ -205,6 +223,7 @@ appear in your **Applications** queue waiting for you to approve them.
 | SQL editor shows a red error | Copy the error text and send it to me |
 | "PROBLEM" in the check query | Tell me which row |
 | Site loads but says "Missing VITE_SUPABASE_URL" | Part 4 secrets are missing or misspelled — re-run the deploy after fixing |
+| "Invalid API key" once signed in | You used the secret key instead of the publishable one, or the key was revoked. Put the publishable key in and re-run the deploy |
 | Registration fails with an error | The email is not `@studentmail.unimap.edu.my`. That is the gate working |
 | You registered but have no RPS Panel | `bootstrap_admin_email` was not set before you registered. Tell me and I'll give you a one-line fix |
 | Psychometric test says unavailable | Part 2 did not finish. Run the file again |
