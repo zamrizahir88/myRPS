@@ -275,13 +275,17 @@ export default function Academic() {
                   ))}
                 </select>
               </Field>
-              <Field label={t.academic.semesterNo}>
+              <Field
+                label={t.academic.semesterNo}
+                hint={termDraft.semester === 3 ? t.academic.tambahanHint : undefined}
+              >
                 <select
                   className="input" value={termDraft.semester}
                   onChange={(e) => setTermDraft({ ...termDraft, semester: Number(e.target.value) })}
                 >
-                  <option value={1}>{locale === 'ms' ? 'Semester 1' : 'Semester 1'}</option>
-                  <option value={2}>{locale === 'ms' ? 'Semester 2' : 'Semester 2'}</option>
+                  <option value={1}>Semester 1</option>
+                  <option value={2}>Semester 2</option>
+                  {/* sits after Semester 2 in the same session — the long break */}
                   <option value={3}>{locale === 'ms' ? 'Semester Tambahan' : 'Special Semester'}</option>
                 </select>
               </Field>

@@ -351,3 +351,79 @@ begin
   if total <> 140 then raise exception 'FAIL: 2022 requirements total %, expected 140', total; end if;
   raise notice 'PASS: both intakes require exactly 140 credits';
 end $$;
+
+\echo '--- repeats and Semester Tambahan: which attempt counts ---'
+reset role;
+set request.jwt.claim.sub = '';
+insert into auth.users (id, email)
+values ('00000000-0000-0000-0000-0000000000d1', 's221400001@studentmail.unimap.edu.my');
+update public.profiles
+   set approval_state = 'approved', intake_year = '2022', programme_code = 'UR6523007',
+       full_name = 'Repeat Test Student'
+ where id = '00000000-0000-0000-0000-0000000000d1';
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000d1';
+
+do $$
+declare
+  t1 uuid; t2 uuid; t3 uuid;
+  subj_a uuid; subj_b uuid;
+begin
+  select id into subj_a from public.curriculum_subjects where code = 'NMK10103' and intake_year = '2022';
+  select id into subj_b from public.curriculum_subjects where code = 'NMK10203' and intake_year = '2022';
+
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 1, 1) returning id into t1;
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 2, 1) returning id into t2;
+  -- Semester Tambahan sits AFTER Semester 2 in the same session
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 3, 1) returning id into t3;
+
+  -- subject A: failed in Sem 1, repeated in Sem 2
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values (auth.uid(), subj_a, t1, 'fail', 'F'),
+         (auth.uid(), subj_a, t2, 'pass', 'B');
+
+  -- subject B: failed in Sem 2, repeated in Semester Tambahan
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values (auth.uid(), subj_b, t2, 'fail', 'F'),
+         (auth.uid(), subj_b, t3, 'pass', 'C');
+end $$;
+
+do $$
+declare g numeric; c int;
+begin
+  -- Only the latest attempt of each: B(3.00)x3 + C(2.00)x3 = 15 over 6 credits
+  select cgpa, graded_credits into g, c from public.v_student_cgpa where user_id = auth.uid();
+  if g <> 2.50 then raise exception 'FAIL: CGPA should be 2.50, got %', g; end if;
+  if c <> 6 then raise exception 'FAIL: only 6 credits should count, got %', c; end if;
+  raise notice 'PASS: superseded fails drop out of CGPA entirely (2.50 over 6 credits)';
+end $$;
+
+do $$
+declare k text;
+begin
+  select term_key into k from public.v_gpa_attempts
+   where user_id = auth.uid()
+     and subject_id = (select id from public.curriculum_subjects
+                        where code = 'NMK10203' and intake_year = '2022');
+  if k <> '2026/2027-3' then
+    raise exception 'FAIL: Semester Tambahan did not supersede Semester 2 (got %)', k;
+  end if;
+  raise notice 'PASS: Semester Tambahan ranks after Semester 2 in the same session';
+end $$;
+
+do $$
+declare png1 numeric; png2 numeric; png3 numeric;
+begin
+  select gpa into png1 from public.v_semester_gpa where user_id = auth.uid() and semester = 1;
+  select gpa into png2 from public.v_semester_gpa where user_id = auth.uid() and semester = 2;
+  select gpa into png3 from public.v_semester_gpa where user_id = auth.uid() and semester = 3;
+  -- the semester's own GPA keeps the fail: it is history, not the running CGPA
+  if png1 <> 0.00 then raise exception 'FAIL: Sem 1 PNG should be 0.00, got %', png1; end if;
+  if png2 <> 1.50 then raise exception 'FAIL: Sem 2 PNG should be 1.50, got %', png2; end if;
+  if png3 <> 2.00 then raise exception 'FAIL: Tambahan PNG should be 2.00, got %', png3; end if;
+  raise notice 'PASS: each semester keeps its own PNG including the fail (0.00 / 1.50 / 2.00)';
+end $$;

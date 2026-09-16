@@ -104,6 +104,7 @@ export const ms: Dict = {
     alreadyInTerm: 'Kursus itu sudah ada dalam semester ini. Untuk merekod ulangan, tambahkannya dalam semester kemudian.',
     anySubjectHint: 'Mana-mana kursus, dalam mana-mana semester — termasuk kursus ulangan.',
     gradeHint: 'Biarkan kosong sehingga keputusan keluar. PNGK anda dikemas kini sendiri.',
+    tambahanHint: 'Diadakan pada cuti panjang selepas Semester 2, biasanya untuk pelajar Tahun 3 dan 4 mengulang kursus yang gagal.',
     deleteTermConfirm: 'Padam semester ini dan semua kursus di dalamnya?',
     deleteRecord: 'Buang',
   },

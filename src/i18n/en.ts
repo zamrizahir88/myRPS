@@ -102,6 +102,7 @@ export const en = {
     alreadyInTerm: 'That subject is already in this semester. To record a retake, add it to a later semester instead.',
     anySubjectHint: 'Any subject, in any semester — including one you are repeating.',
     gradeHint: 'Leave blank until results are out. Your CGPA updates itself.',
+    tambahanHint: 'Held in the long break after Semester 2, usually so Year 3 and 4 students can retake a subject they failed.',
     deleteTermConfirm: 'Delete this semester and every subject recorded in it?',
     deleteRecord: 'Remove',
   },
