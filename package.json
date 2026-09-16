@@ -10,7 +10,8 @@
     "lint": "tsc --noEmit",
     "db:setup": "node scripts/setup-db.mjs",
     "db:check": "node scripts/setup-db.mjs --check",
-    "db:bundle": "node scripts/build-combined-sql.mjs"
+    "db:bundle": "node scripts/build-combined-sql.mjs",
+    "check:sql": "node scripts/check-editor-sql.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
