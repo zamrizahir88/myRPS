@@ -16,14 +16,23 @@
   --border: #E3E7F0;
   --text: #0C1435;
   --text-2: #4B5675;
-  --text-3: #8A92AB;
+  --text-3: #626B88;
   --brand: #1A2A6C;
+  --brand-solid: #1A2A6C;
   --brand-soft: #EEF1FA;
+  --danger-text: #B32B2B;
+  --check-bg: #0A7A0A;
   --accent: #FFC627;
   --accent-ink: #4A3400;
   --series-1: #2E5BBF;
   --gridline: #DFE4EF;
   --track: #E8EBF3;
+  /* Status tints. Each is a bg/ink PAIR — using a tint without its ink is
+     what produced white-on-mint in dark mode. */
+  --tint-good-bg: #E9F7E9;  --tint-good-ink: #046004;
+  --tint-warn-bg: #FDF4E0;  --tint-warn-ink: #7A5600;
+  --tint-bad-bg:  #FDECEC;  --tint-bad-ink:  #8F2727;
+  --tint-info-bg: #EEF1FA;  --tint-info-ink: #1A2A6C;
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-critical: #d03b3b;
@@ -38,13 +47,20 @@
   --text: #F2F5FC;
   --text-2: #AEB7D0;
   --text-3: #7A84A0;
-  --brand: #4A7FE0;
+  --brand: #6E9BEA;
+  --brand-solid: #2E5BBF;
   --brand-soft: #1A2447;
+  --danger-text: #F2A0A0;
+  --check-bg: #0A7A0A;
   --accent: #FFC627;
   --accent-ink: #2A1E00;
   --series-1: #4A7FE0;
   --gridline: #2A3556;
   --track: #222C4A;
+  --tint-good-bg: #0E2A12;  --tint-good-ink: #86D98C;
+  --tint-warn-bg: #3A2C00;  --tint-warn-ink: #FFD44D;
+  --tint-bad-bg:  #3A1414;  --tint-bad-ink:  #F2A0A0;
+  --tint-info-bg: #1A2447;  --tint-info-ink: #9FB6F0;
 }
 
 html, body, #root { height: 100%; }
@@ -84,7 +100,7 @@ body {
            text-sm font-semibold transition active:scale-[.98]
            disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
   }
-  .btn-primary { background: var(--brand); @apply btn text-white hover:brightness-110; }
+  .btn-primary { background: var(--brand-solid); @apply btn text-white hover:brightness-110; }
   .btn-accent  { @apply btn bg-gold text-[color:var(--accent-ink)] hover:bg-gold-300; }
   .btn-ghost {
     background: var(--surface); border: 1px solid var(--border); color: var(--text);
@@ -96,6 +112,13 @@ body {
     @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full
            px-2.5 py-1 text-xs font-semibold;
   }
+  /* Always applied as a pair, so the ink follows the tint into dark mode. */
+  .tint-good { background: var(--tint-good-bg); color: var(--tint-good-ink); }
+  .tint-warn { background: var(--tint-warn-bg); color: var(--tint-warn-ink); }
+  .tint-bad  { background: var(--tint-bad-bg);  color: var(--tint-bad-ink); }
+  .tint-info { background: var(--tint-info-bg); color: var(--tint-info-ink); }
+  .tint-muted { background: var(--surface-2); color: var(--text-2); }
+
   .section-title {
     color: var(--text-2);
     @apply text-xs font-bold uppercase tracking-wider;

@@ -92,3 +92,19 @@ Academic Guide Book, MODUL RPS 2025 and the Panduan RPS (JHEP).
 
 Source code: MIT. The content from UniMAP documents and the psychometric
 instrument remain the property of their respective owners.
+
+## Checks
+
+```bash
+npm run check:css         # every var(--token) is defined
+npm run check:sql         # editor-facing SQL is free of psql-only commands
+npm run check:contrast    # WCAG contrast audit, both themes (needs the dev server)
+./scripts/verify-local.sh # 28 security tests against a throwaway PostgreSQL
+```
+
+`check:contrast` renders `preview.html` — a kitchen-sink page carrying every
+surface, tint, chip, button and state — and measures each text node against
+its effective background in light and dark. It exists because a hardcoded
+light tint keeps its colour when the text flips to near-white, which is
+invisible until someone opens the page in dark mode. Start the dev server
+first: `npm run dev -- --port 5182`.

@@ -28,6 +28,20 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteText, setDeleteText] = useState('')
+  // Read the available curriculum versions rather than hardcoding them: a
+  // hardcoded pair goes stale the moment a new intake is seeded.
+  const [intakes, setIntakes] = useState<string[]>([])
+
+  useEffect(() => {
+    void (async () => {
+      const { data } = await supabase
+        .from('curriculum_requirements')
+        .select('intake_year')
+        .eq('programme_code', 'UR6523007')
+      const years = [...new Set(((data as { intake_year: string }[]) ?? []).map((r) => r.intake_year))]
+      setIntakes(years.sort().reverse())
+    })()
+  }, [])
 
   useEffect(() => { if (profile) setForm(profile) }, [profile])
 
@@ -236,8 +250,8 @@ export default function ProfilePage() {
             label={t.profile.intakeYear}
             required
             hint={locale === 'ms'
-              ? 'Menentukan senarai kursus yang anda lihat.'
-              : 'Decides which curriculum version you see.'}
+              ? 'Struktur kurikulum yang anda ikuti — biasanya sesi anda mula belajar.'
+              : 'The curriculum structure you follow — usually the session you started in.'}
           >
             <select
               className="input"
@@ -245,8 +259,11 @@ export default function ProfilePage() {
               onChange={(e) => set('intake_year', e.target.value)}
             >
               <option value="">{t.common.notSet}</option>
-              <option value="2022">2022</option>
-              <option value="2025">2025</option>
+              {intakes.map((y) => (
+                <option key={y} value={y}>
+                  {y}/{Number(y) + 1}
+                </option>
+              ))}
             </select>
           </Field>
           {text('intake_semester', t.profile.intakeSemester)}

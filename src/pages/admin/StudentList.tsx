@@ -169,7 +169,7 @@ export default function StudentList() {
                           <span
                             key={fl.key}
                             className={`chip ${
-                              fl.tone === 'critical' ? 'bg-[#fdecec] text-[#8f2727]' : 'bg-[#fdf4e0] text-[#7a5600]'
+                              fl.tone === 'critical' ? 'tint-bad' : 'tint-warn'
                             }`}
                           >
                             {fl.tone === 'critical' ? '●' : '▲'} {fl.label}

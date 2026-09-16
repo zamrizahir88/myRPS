@@ -138,17 +138,17 @@ export default function Community() {
               <li
                 key={r.user_id}
                 className={`flex items-center gap-3 rounded-lg px-2 py-2 ${
-                  r.user_id === profile?.id ? 'bg-[#eef4fd]' : ''
+                  r.user_id === profile?.id ? 'tint-info' : ''
                 }`}
               >
                 <span className="tnum w-6 shrink-0 text-sm font-semibold text-[color:var(--text-3)]">{i + 1}</span>
                 <Avatar name={r.full_name} size={28} />
                 <span className="min-w-0 flex-1 truncate text-sm">{r.full_name ?? '—'}</span>
                 {r.badge_pillars_master && (
-                  <span className="chip bg-[#e9f7e9] text-[#046004]" title={t.community.pillarsMaster}>★ 7</span>
+                  <span className="chip tint-good" title={t.community.pillarsMaster}>★ 7</span>
                 )}
                 {r.badge_improving && (
-                  <span className="chip bg-[#eef4fd] text-[#184f95]" title={t.community.improving}>▲</span>
+                  <span className="chip tint-info" title={t.community.improving}>▲</span>
                 )}
                 <span className="tnum shrink-0 text-sm font-medium">{metric(r)}</span>
               </li>
@@ -171,7 +171,7 @@ export default function Community() {
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="text-xs font-medium">{names.get(m.user_id) ?? '—'}</span>
                       {m.is_announcement && (
-                        <span className="chip bg-[#fdf4e0] text-[#7a5600]">{t.community.announcement}</span>
+                        <span className="chip tint-warn">{t.community.announcement}</span>
                       )}
                       <span className="text-[11px] text-[color:var(--text-3)]">
                         {new Date(m.created_at).toLocaleTimeString(locale === 'ms' ? 'ms-MY' : 'en-MY', {
@@ -189,7 +189,7 @@ export default function Community() {
                     </div>
                     <p
                       className={`mt-0.5 whitespace-pre-wrap break-words text-sm ${
-                        m.is_announcement ? 'rounded-lg border-l-2 border-status-warning bg-[#fdf9ef] px-2 py-1' : ''
+                        m.is_announcement ? 'rounded-lg border-l-2 border-status-warning tint-warn px-2 py-1' : ''
                       }`}
                     >
                       {m.body}

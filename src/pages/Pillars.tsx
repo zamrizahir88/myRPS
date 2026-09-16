@@ -100,7 +100,7 @@ export default function Pillars() {
                   onClick={() => void togglePillar(p.code)}
                   disabled={done?.verified}
                   className={`flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors ${
-                    done ? 'border-status-good/40 bg-[#f2fbf2]' : 'border-[color:var(--border)] bg-white hover:bg-[color:var(--surface-2)]'
+                    done ? 'border-status-good/40 tint-good' : 'border-[color:var(--border)] bg-[color:var(--surface)] hover:bg-[color:var(--surface-2)]'
                   } disabled:cursor-not-allowed`}
                 >
                   <span
@@ -119,7 +119,7 @@ export default function Pillars() {
                       <span className="block text-xs text-[color:var(--text-2)]">{done.activity_name}</span>
                     )}
                     {done && (
-                      <span className={`chip mt-1 ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
+                      <span className={`chip mt-1 ${done.verified ? 'tint-good' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
                         {done.verified ? `✓ ${t.pillars.verified}` : t.pillars.pendingVerify}
                       </span>
                     )}
@@ -155,7 +155,7 @@ export default function Pillars() {
                       dateStyle: 'medium', timeStyle: 'short',
                     })}
                   </span>
-                  <span className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
+                  <span className={`chip ${m.verified ? 'tint-good' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}>
                     {m.verified ? `✓ ${t.pillars.verifiedTag}` : t.pillars.unverifiedTag}
                   </span>
                 </div>

@@ -21,11 +21,13 @@ export function StatTile({
   sub?: ReactNode
   tone?: 'default' | 'good' | 'warning' | 'critical'
 }) {
+  // The status hues are mark colours; as text they are unreadable (amber on
+  // white measures 1.8:1). The tint inks are the readable pair.
   const toneColor = {
     default: 'var(--text)',
-    good: 'var(--status-good)',
-    warning: 'var(--status-warning)',
-    critical: 'var(--status-critical)',
+    good: 'var(--tint-good-ink)',
+    warning: 'var(--tint-warn-ink)',
+    critical: 'var(--tint-bad-ink)',
   }[tone]
   return (
     <div className="card">
@@ -47,10 +49,10 @@ export function Alert({
   children: ReactNode
 }) {
   const styles = {
-    info: 'bg-navy-50 text-navy-700 border-navy-100 dark:bg-navy-900/40 dark:text-navy-200 dark:border-navy-800',
-    good: 'bg-[#e9f7e9] text-[#046004] border-[#c3e8c3]',
-    warning: 'bg-[#fdf4e0] text-[#7a5600] border-[#f6e0ae]',
-    critical: 'bg-[#fdecec] text-[#8f2727] border-[#f6cccc]',
+    info: 'tint-info border-[color:var(--border)]',
+    good: 'tint-good border-[color:var(--tint-good-ink)]/25',
+    warning: 'tint-warn border-[color:var(--tint-warn-ink)]/25',
+    critical: 'tint-bad border-[color:var(--tint-bad-ink)]/25',
   }[tone]
   return (
     <div className={`rounded-xl border px-3.5 py-2.5 text-sm ${styles}`} role="status">
@@ -71,7 +73,7 @@ export function Field({
     <label className="block">
       <span className="label">
         {label}
-        {required && <span style={{ color: 'var(--status-critical)' }}> *</span>}
+        {required && <span style={{ color: 'var(--danger-text)' }}> *</span>}
       </span>
       {children}
       {hint && <span className="mt-1 block text-xs" style={{ color: 'var(--text-3)' }}>{hint}</span>}
@@ -128,7 +130,10 @@ export function Avatar({ name, url, size = 36 }: { name: string | null; url?: st
       className="flex shrink-0 items-center justify-center rounded-full font-bold text-white"
       style={{
         width: size, height: size, fontSize: size * 0.38,
-        background: 'linear-gradient(135deg, #2E5BBF, #1A2A6C)',
+        // solid colour first: a gradient alone leaves backgroundColor
+        // transparent, which breaks contrast checking and any fallback
+        backgroundColor: '#1A2A6C',
+        backgroundImage: 'linear-gradient(135deg, #2E5BBF, #1A2A6C)',
       }}
       aria-hidden
     >

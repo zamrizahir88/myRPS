@@ -9,8 +9,10 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const src = join(dirname(fileURLToPath(import.meta.url)), '..', 'src')
+// Match a declaration anywhere, not just at the start of a line — several
+// tokens share a line — but not a var(--x) reference.
 const defined = new Set(
-  [...readFileSync(join(src, 'index.css'), 'utf8').matchAll(/^\s+(--[a-z0-9-]+)\s*:/gm)].map((m) => m[1]),
+  [...readFileSync(join(src, 'index.css'), 'utf8').matchAll(/(?<!var\()(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]),
 )
 // set inline by the component that consumes it
 defined.add('--ring-length')

@@ -48,7 +48,7 @@ export default function AuthShell({ title, children }: { title: string; children
             {PILLARS.map((p, i) => (
               <li
                 key={p.code}
-                className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white/80"
+                className="rounded-full border border-white/15 bg-[color:var(--surface)]/5 px-3 py-1.5 text-[11px] font-medium text-white/80"
               >
                 <span className="text-gold">P{i + 1}</span>{' '}
                 {locale === 'ms' ? p.name_ms : p.name_en}

@@ -11,11 +11,11 @@ import type { RecordState, StudentRecord, StudentTerm, Subject } from '../lib/ty
 const STATES: RecordState[] = ['active', 'pass', 'fail', 'exempted', 'planned']
 
 const STATE_STYLE: Record<RecordState, string> = {
-  pass: 'bg-[#e9f7e9] text-[#046004] dark:bg-[#0d2d0d] dark:text-[#7fd77f]',
-  fail: 'bg-[#fdecec] text-[#8f2727] dark:bg-[#361212] dark:text-[#f0a0a0]',
-  active: 'bg-gold-50 text-gold-700 dark:bg-[#3a2c00] dark:text-gold-200',
-  exempted: 'bg-navy-50 text-navy-700 dark:bg-navy-900 dark:text-navy-200',
-  planned: 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]',
+  pass: 'tint-good',
+  fail: 'tint-bad',
+  active: 'tint-warn',
+  exempted: 'tint-info',
+  planned: 'tint-muted',
 }
 
 type TermDraft = { study_year: number; semester: number; session: string }

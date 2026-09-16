@@ -129,7 +129,7 @@ export default function Psychometric() {
                     className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${
                       responses[item.question_no] === v
                         ? 'border-[color:var(--brand)] bg-[color:var(--brand)] text-white'
-                        : 'border-[color:var(--border)] bg-white text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
+                        : 'border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--text-2)] hover:bg-[color:var(--surface-2)]'
                     }`}
                   >
                     <span className="block text-sm">{v}</span>
@@ -143,7 +143,7 @@ export default function Psychometric() {
           ))}
         </ol>
 
-        <div className="sticky bottom-0 -mx-4 border-t border-[color:var(--border)] bg-white px-4 py-3">
+        <div className="sticky bottom-0 -mx-4 border-t border-[color:var(--border)] bg-[color:var(--surface)] px-4 py-3">
           <button onClick={() => void submit()} disabled={busy || answered < items.length} className="btn-primary w-full">
             {busy ? t.common.loading : t.psychometric.submit}
           </button>
@@ -165,7 +165,7 @@ export default function Psychometric() {
 
         {/* Persona card */}
         <div
-          className="animate-card-rise overflow-hidden rounded-xl border border-[color:var(--border)] bg-white"
+          className="animate-card-rise overflow-hidden rounded-xl border border-[color:var(--border)] bg-[color:var(--surface)]"
           style={{ borderTop: `4px solid ${strength.accent}` }}
         >
           <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center">

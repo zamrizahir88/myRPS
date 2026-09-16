@@ -206,7 +206,7 @@ export default function StudentDetail() {
                   {done ? (
                     <button
                       onClick={() => void togglePillarVerify(done)}
-                      className={`chip ${done.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
+                      className={`chip ${done.verified ? 'tint-good' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
                     >
                       {done.verified ? `✓ ${t.pillars.verifiedTag}` : t.admin.verifyMeeting}
                     </button>
@@ -236,7 +236,7 @@ export default function StudentDetail() {
                   </span>
                   <button
                     onClick={() => void toggleVerify(m)}
-                    className={`chip ${m.verified ? 'bg-[#e9f7e9] text-[#046004]' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
+                    className={`chip ${m.verified ? 'tint-good' : 'bg-[color:var(--surface-2)] text-[color:var(--text-2)]'}`}
                   >
                     {m.verified ? `✓ ${t.pillars.verifiedTag}` : t.admin.verifyMeeting}
                   </button>

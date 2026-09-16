@@ -12,7 +12,8 @@
     "db:check": "node scripts/setup-db.mjs --check",
     "db:bundle": "node scripts/build-combined-sql.mjs",
     "check:sql": "node scripts/check-editor-sql.mjs",
-    "check:css": "node scripts/check-css-tokens.mjs"
+    "check:css": "node scripts/check-css-tokens.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -26,6 +27,7 @@
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "pg": "^8.23.0",
+    "playwright": "^1.63.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2",
