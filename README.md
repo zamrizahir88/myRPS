@@ -8,7 +8,11 @@ Built as a personal initiative. **Not an official UniMAP system** — every figu
 in it is entered by the student, and AMIS remains the official record. The
 interface says so on every page.
 
-**New here? Start with [SETUP.md](SETUP.md).**
+**New here? Start with [SETUP.md](SETUP.md).** Database setup is one command:
+
+```bash
+npm install && npm run db:setup
+```
 
 ---
 
@@ -42,6 +46,19 @@ interface says so on every page.
 | Hosting | GitHub Pages (static, free) |
 | Backend | Supabase — Postgres, Auth, Storage, Realtime (free tier) |
 | Charts | hand-rolled SVG, no chart library |
+
+## Verifying it
+
+`./scripts/verify-local.sh` applies every migration to a throwaway local
+PostgreSQL and runs 22 tests against it — that a student cannot approve
+themselves, cannot read another student's records, cannot retake the
+psychometric test without the RPS resetting it, cannot self-verify a meeting to
+farm leaderboard points, that a subject repeated three times counts once toward
+the 140, and that both curriculum intakes total exactly 140 credits. Run it
+before changing anything in `supabase/`.
+
+`npm run db:check` runs the same structural checks against the live project
+without modifying it.
 
 ## Security model in one paragraph
 

@@ -168,7 +168,15 @@ left join lateral (
     where sp.user_id = p.id order by sp.semester_taken desc offset 1 limit 1
   ) as improving
 ) imp on true
-where p.approval_state = 'approved';
+where p.approval_state = 'approved'
+  -- the RPS is approved too, but ranking the advisor among their own advisees
+  -- is nonsense; keep the board to students.
+  and not exists (select 1 from public.admins a where a.user_id = p.id)
+  -- Because this view runs with the owner's rights it does NOT inherit the RLS
+  -- on profiles, so it has to check the caller itself. Without this line any
+  -- account that merely completed signup — pending, rejected, anybody with a
+  -- student address — could list every advisee by name.
+  and (public.is_approved() or public.is_admin());
 
 revoke all on public.leaderboard from anon;
 grant select on public.leaderboard to authenticated;
@@ -179,9 +187,13 @@ create or replace view public.member_names
 with (security_invoker = off) as
 -- avatar_path is deliberately absent: avatars live in a private bucket that
 -- only the owner and the RPS may read, so chat shows initials instead.
+-- Unlike the leaderboard this DOES include the RPS, otherwise their own chat
+-- messages and announcements would show up with no name against them.
 select p.id as user_id, p.full_name
 from public.profiles p
-where p.approval_state = 'approved';
+where p.approval_state = 'approved'
+  -- same reasoning as the leaderboard: owner's rights, so check the caller.
+  and (public.is_approved() or public.is_admin());
 
 revoke all on public.member_names from anon;
 grant select on public.member_names to authenticated;

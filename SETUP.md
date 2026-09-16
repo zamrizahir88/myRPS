@@ -1,9 +1,12 @@
 # Setting up myRPS
 
-Written for someone who has never used Supabase. Follow it top to bottom once;
-after that, deploying a change is just `git push`.
+Written for someone who has never used Supabase.
 
-Budget about 45 minutes. Nothing here costs money.
+Most of the database work is now a single command. What's left is four settings
+in two dashboards — those are account settings, not database objects, so no
+script can do them for you.
+
+Budget about 25 minutes. Nothing here costs money.
 
 ---
 
@@ -14,16 +17,15 @@ Budget about 45 minutes. Nothing here costs money.
 | The website | GitHub Pages | free |
 | Accounts, database, file storage, chat | Supabase free tier | free |
 
-The website is a folder of static files. It has no server of its own — it talks
+The website is a folder of static files with no server of its own. It talks
 straight to Supabase from the student's browser.
 
-**The consequence, and the one thing to understand before you start:** the key
-the website uses to reach your database is inside the JavaScript, and anyone can
-read it. That is normal and it is how Supabase is designed to work. What stops a
-student reading another student's IC number is **Row Level Security** — the
-rules in `supabase/03_rls.sql`. If you ever add a table by hand, it has no
-policies until you write them, and until then it is readable by anyone who opens
-the browser console. Never skip step 4.
+**The one thing to understand before you start:** the key the website uses to
+reach your database is inside the JavaScript, and anyone can read it. That is
+normal and it is how Supabase is designed. What stops one student reading
+another's IC number is **Row Level Security** — the rules in
+`supabase/03_rls.sql`. The setup script checks those rules applied, and refuses
+to report success if they didn't.
 
 ---
 
@@ -33,133 +35,139 @@ the browser console. Never skip step 4.
 2. **New project**.
    - Name: `myrps`
    - Database password: generate one and **save it in your password manager**.
-     You will rarely need it, but it cannot be recovered.
+     You need it in step 2 and it cannot be recovered.
    - Region: **Southeast Asia (Singapore)** — closest to Perlis.
    - Plan: Free.
 3. Wait ~2 minutes while it provisions.
 
-## Step 2 — Copy your two keys
+## Step 2 — Run the setup
 
-Left sidebar → **Project Settings** → **API**.
+Press **Connect** at the top of the Supabase dashboard, choose **Session
+pooler**, and copy the URI. Replace `[YOUR-PASSWORD]` with the password from
+step 1.
 
-Copy these two, you'll need them in step 7:
+> Take the **Session pooler** string (port 5432), not the Transaction pooler
+> (port 6543). The transaction pooler cannot run these statements; the script
+> stops with an explanation if you paste the wrong one.
 
-- **Project URL** — looks like `https://abcdefgh.supabase.co`
-- **anon public** key — a long string starting `eyJ...`
+Then, in a terminal in this project folder:
 
-> There is also a **service_role** key on that page. It bypasses every security
-> rule in your database. Never put it in this project, in GitHub, or in a
-> browser. If you ever paste it somewhere public, rotate it immediately.
+```bash
+npm install
+npm run db:setup
+```
 
-## Step 3 — Create the tables
+It asks for the connection string, applies all seven migrations in order,
+and then checks its own work:
 
-Left sidebar → **SQL Editor** → **New query**.
+```
+Applying migrations
+  01_schema.sql                     ok
+  02_functions.sql                  ok
+  03_rls.sql                        ok
+  04_views.sql                      ok
+  05_storage.sql                    ok
+  06_seed.sql                       ok
+  07_realtime.sql                   ok
+  private/psychometric_items.sql    ok
 
-Open each file from the `supabase/` folder of this repo, paste the whole
-contents into the editor, and press **Run**. **Do them in order** — each one
-depends on the last:
+Checking the result
+  ✓ Row Level Security on every table
+  ✓ Signed-out role has no table access
+  ✓ Curriculum seeded (140 credits per intake)
+  ✓ Psychometric bank loaded (70 items, 10 per intelligence)
+  ✓ Avatar bucket is private
+```
 
-1. `01_schema.sql` — the tables
-2. `02_functions.sql` — signup gate, admin actions, guards
-3. `03_rls.sql` — **the security rules**
-4. `04_views.sql` — credits, GPA, the safe leaderboard
-5. `05_storage.sql` — the private bucket for profile photos
-6. `06_seed.sql` — grade scale, settings, the UR6523007 curriculum
-7. `07_realtime.sql` — live chat
+Drop the `psychometric_items.sql` file I sent you into a `private/` folder
+first and it gets applied too. It is not in this repository on purpose: the
+Multiple Intelligences Test is free to use but licensed *"not to be sold or
+published"*, and this repo is public. `private/` is gitignored.
 
-Each should finish with "Success. No rows returned". If one errors, fix it
-before running the next.
+**Re-running is safe.** Every migration is idempotent and student data is never
+touched, so `npm run db:setup` is also how you apply future changes. To check
+an existing project without changing anything: `npm run db:check`.
 
-Then run the file I sent you separately, **`psychometric_items.sql`** — the 70
-test statements. It is not in this repo on purpose: the Multiple Intelligences
-Test is free to use but licensed *"not to be sold or published"*, and this repo
-is public. Keep that file on your own computer.
+### No Node on your machine?
 
-## Step 4 — Check the security rules actually applied
+Do it from GitHub instead. Add a repository secret `SUPABASE_DB_URL` with the
+same connection string (**Settings → Secrets and variables → Actions**), then
+**Actions → Set up Supabase database → Run workflow**. Optionally add a second
+secret `PSYCHOMETRIC_ITEMS_SQL` with the contents of that file pasted in — a
+secret is not published, so it is a fine place for it.
 
-Left sidebar → **Advisors** → **Security Advisor**.
+### Prefer to paste SQL by hand?
 
-You want **no errors** about "RLS disabled in public". Two *warnings* are
-expected and intentional:
+The files in `supabase/` are plain SQL. Open the Supabase **SQL Editor** and run
+them in numbered order, `01` through `07`, then the psychometric file. Same
+result, more clicking.
 
-- `leaderboard` and `member_names` are flagged as security-definer views. That
-  is deliberate — they are how students see each other's names and engagement
-  scores without being able to read each other's profiles. Their column lists
-  are the privacy boundary. Read the comment at the top of `04_views.sql` before
-  you ever add a column to them.
+---
 
-## Step 5 — Configure sign-ups
+## Step 3 — Four settings the script cannot touch
 
-**Authentication** → **Sign In / Providers** → Email:
+**Supabase → Authentication → Sign In / Providers → Email**
 
-- **Enable email provider**: on
-- **Confirm email**: **on**. Without it, anyone can register using someone
-  else's address.
+1. **Confirm email**: **on**. Without it, anyone can register using someone
+   else's address.
 
-**Authentication** → **URL Configuration**:
+**Supabase → Authentication → URL Configuration**
 
-- **Site URL**: `https://zamrizahir88.github.io/myRPS/`
-- **Redirect URLs**: add `https://zamrizahir88.github.io/myRPS/**`
-  and `http://localhost:5173/**` for local testing.
+2. **Site URL**: `https://zamrizahir88.github.io/myRPS/`
+3. **Redirect URLs**: add `https://zamrizahir88.github.io/myRPS/**`
+   (and `http://localhost:5173/**` if you want to test locally)
 
-> Supabase's built-in email sender is rate-limited to a handful of messages per
-> hour. Fine for a cohort of 16 registering over a week. If you ever onboard a
-> whole cohort in one afternoon, connect a free Resend or Brevo SMTP account
-> under **Project Settings → Authentication → SMTP**.
+**GitHub → Settings → Secrets and variables → Actions**
 
-## Step 6 — Make yourself the admin
+4. Two secrets, both from Supabase **Project Settings → API**:
 
-This is the step people get wrong. Do it **before** you register.
-
-**Table Editor** → `app_settings` → find the row `bootstrap_admin_email` → set
-its value to **your staff email** (e.g. `zamrizahir@unimap.edu.my`) → save.
-
-While you are there, check the other rows:
-
-| key | what it does |
+| Secret | Value |
 |---|---|
-| `allowed_email_domain` | only this domain can register. `studentmail.unimap.edu.my` |
-| `bootstrap_admin_email` | this address becomes the RPS admin, and bypasses the domain rule |
-| `rps_whatsapp` | your number, international format, digits only: `60123456789` |
-| `rps_name` | shown on announcements |
+| `VITE_SUPABASE_URL` | your Project URL, `https://xxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | the **anon public** key, starting `eyJ...` |
 
-Now register at your own site with that staff address. You will be approved and
-made admin automatically.
+And three variables (the *Variables* tab, not *Secrets*):
 
-**To add a second admin later:** Table Editor → `admins` → Insert row → paste
-the person's user id (find it under Authentication → Users). There is no button
-for this on purpose.
-
-## Step 7 — Tell GitHub about your Supabase project
-
-In this repository on GitHub: **Settings** → **Secrets and variables** →
-**Actions**.
-
-Under **Secrets** → *New repository secret*:
-
-| Name | Value |
-|---|---|
-| `VITE_SUPABASE_URL` | your Project URL from step 2 |
-| `VITE_SUPABASE_ANON_KEY` | your anon public key from step 2 |
-
-Under **Variables** → *New repository variable*:
-
-| Name | Value |
+| Variable | Value |
 |---|---|
 | `VITE_ALLOWED_DOMAIN` | `studentmail.unimap.edu.my` |
 | `VITE_RPS_WHATSAPP` | `60123456789` |
 | `VITE_RPS_NAME` | `Ts. Dr. Mohd Zamri bin Zahir Ahmad` |
 
-(They are "secrets" only by habit — the anon key is public by design. Keeping
-them out of the code just means you can rotate the project without editing
-files.)
+> There is also a **service_role** key on that API page. It bypasses every
+> security rule in your database. Never put it in this project, in GitHub, or
+> in a browser. If it ever leaks, rotate it immediately.
 
-## Step 8 — Turn on GitHub Pages
+## Step 4 — Make yourself the admin
+
+This is the step people get wrong. Do it **before** you register.
+
+Supabase → **Table Editor** → `app_settings` → the row `bootstrap_admin_email`
+→ set the value to **your staff email** → save.
+
+While you're there, check the rest:
+
+| key | what it does |
+|---|---|
+| `allowed_email_domain` | only this domain may register: `studentmail.unimap.edu.my` |
+| `bootstrap_admin_email` | this address becomes the RPS admin, and bypasses the domain rule |
+| `rps_whatsapp` | your number, international format, digits only |
+| `rps_name` | shown on announcements |
+
+Then register on your own site with that staff address. You are approved and
+made admin automatically. Running `npm run db:check` afterwards should show
+**✓ Admin configured**.
+
+**To add a second admin later:** Table Editor → `admins` → Insert row → paste
+their user id from Authentication → Users. There is no button for this on
+purpose.
+
+## Step 5 — Turn on GitHub Pages
 
 **Settings** → **Pages** → **Source**: **GitHub Actions**.
 
-Then push to `main`, or go to **Actions** → *Deploy to GitHub Pages* → **Run
-workflow**. Two minutes later the site is live at:
+Push to `main`, or **Actions → Deploy to GitHub Pages → Run workflow**. Two
+minutes later:
 
 **https://zamrizahir88.github.io/myRPS/**
 
@@ -169,40 +177,58 @@ workflow**. Two minutes later the site is live at:
 
 ```bash
 npm install
-cp .env.example .env     # then fill in the same values as step 7
+cp .env.example .env     # fill in the same values as step 3
 npm run dev              # http://localhost:5173/myRPS/
 ```
+
+## Changing the database later
+
+Edit the file in `supabase/`, then:
+
+```bash
+./scripts/verify-local.sh   # runs it against a throwaway local Postgres first
+npm run db:setup            # then apply to the real project
+```
+
+`verify-local.sh` needs PostgreSQL 16 installed locally. It applies every
+migration to a scratch database and runs 22 security tests — that a student
+can't approve themselves, can't read another student's records, can't retake
+the psychometric test, can't self-verify a meeting for leaderboard points, that
+a repeated subject counts once, and so on. Worth running before you touch the
+live project.
 
 ---
 
 ## Things worth knowing
 
 **The free tier pauses after 7 days of no activity.** A semester break will do
-it, and students will get errors when they come back. `.github/workflows/
-keepalive.yml` pings it every Monday to prevent this. It needs the same two
-secrets from step 7.
+it, and students get errors when they come back.
+`.github/workflows/keepalive.yml` pings it every Monday. It uses the same two
+secrets from step 3.
 
-**Back up before each semester.** Supabase → Database → Backups is thin on the
-free tier. The simplest habit: Admin panel → Export CSV, once a semester, before
-the exam period.
+**Back up before each semester.** Free-tier backups are thin. The simplest
+habit: Admin panel → Export CSV, once a semester, before the exam period.
 
-**Storage budget.** 1 GB, and profile photos are downscaled to ~40 KB each
-before upload. Forty students is about 2 MB. You will not run out.
+**Storage.** 1 GB, and photos are downscaled to ~40 KB before upload. Forty
+students is about 2 MB.
 
-**Approving a student** does not email them. Tell them to just sign in again.
+**Approving a student does not email them.** Tell them to sign in again.
 
-**If a student says the psychometric test is empty**, you have not run
-`psychometric_items.sql` yet (end of step 3).
+**Psychometric test shows as unavailable** → the question bank isn't loaded.
+Put the file in `private/` and re-run `npm run db:setup`.
 
-**If registration fails with a 500 error**, the address is outside
-`allowed_email_domain`. That is the gate working.
+**Registration fails with a 500** → the address is outside
+`allowed_email_domain`. That's the gate working.
 
 ## Where things live
 
 ```
-supabase/          SQL you paste into the Supabase SQL editor, in numbered order
+supabase/          the migrations, numbered in the order they must run
+scripts/setup-db.mjs   applies them and verifies the result
+scripts/local-test.sql the security test suite
+scripts/verify-local.sh  runs both against a throwaway local database
 src/lib/           scoring, GPA and credit maths — the rules live here
 src/pages/         one file per screen
 src/i18n/          every piece of UI text, in BM and EN
-.github/workflows/ deploy on push, and the weekly keepalive
+.github/workflows/ deploy on push, database setup, weekly keepalive
 ```

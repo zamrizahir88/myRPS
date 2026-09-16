@@ -12,6 +12,7 @@ alter table public.app_settings        enable row level security;
 alter table public.profiles            enable row level security;
 alter table public.grade_scale         enable row level security;
 alter table public.curriculum_subjects enable row level security;
+alter table public.curriculum_requirements enable row level security;
 alter table public.student_records     enable row level security;
 alter table public.academic_targets    enable row level security;
 alter table public.psychometric_attempts enable row level security;
@@ -67,6 +68,17 @@ create policy subjects_read on public.curriculum_subjects for select
 
 drop policy if exists subjects_write on public.curriculum_subjects;
 create policy subjects_write on public.curriculum_subjects for all
+  to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Credit requirements drive every progress bar in the app. Readable by all,
+-- writable only by the RPS — otherwise a student could set their own
+-- graduation target to 6 credits.
+drop policy if exists requirements_read on public.curriculum_requirements;
+create policy requirements_read on public.curriculum_requirements for select
+  to authenticated using (true);
+
+drop policy if exists requirements_write on public.curriculum_requirements;
+create policy requirements_write on public.curriculum_requirements for all
   to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- ---------- academic records: private to the student and the RPS ------------
@@ -178,3 +190,31 @@ create policy items_read on public.psychometric_items for select
 drop policy if exists items_write on public.psychometric_items;
 create policy items_write on public.psychometric_items for all
   to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- ---------- table privileges -------------------------------------------------
+-- Supabase grants new public tables to anon and authenticated automatically via
+-- default privileges. Rather than depend on that, state it explicitly and drop
+-- anon entirely: nothing in myRPS is meant to be readable while signed out, so
+-- the logged-out role should not hold a grant on any of it. RLS is still the
+-- rule that decides WHICH rows a signed-in user sees; this decides who may
+-- reach the tables at all.
+do $$
+declare t record;
+begin
+  for t in
+    select tablename from pg_tables where schemaname = 'public'
+  loop
+    execute format('revoke all on public.%I from anon', t.tablename);
+    execute format('grant select, insert, update, delete on public.%I to authenticated', t.tablename);
+  end loop;
+end $$;
+
+grant usage on schema public to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+grant execute on all functions in schema public to authenticated;
+
+-- Future tables added by the RPS through the dashboard inherit the same shape.
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public
+  revoke all on tables from anon;

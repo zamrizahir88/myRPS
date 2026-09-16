@@ -78,7 +78,10 @@ begin
   values (
     new.id,
     new.email,
-    case when lower(new.email) = lower(coalesce(bootstrap, '')) then 'approved' else 'pending' end
+    (case
+       when lower(new.email) = lower(coalesce(bootstrap, '')) then 'approved'
+       else 'pending'
+     end)::public.approval_state
   )
   on conflict (id) do nothing;
 
@@ -179,13 +182,25 @@ stable
 security definer
 set search_path = public, pg_temp
 as $$
-  select coalesce(
-    (select max(a.taken_at) from public.psychometric_attempts a where a.user_id = auth.uid())
-      is null
-    or (select max(l.created_at) from public.audit_log l
-         where l.target_user = auth.uid() and l.action = 'reset_psychometric')
-       > (select max(a.taken_at) from public.psychometric_attempts a where a.user_id = auth.uid()),
-    true);
+  with last_attempt as (
+    select max(a.taken_at) as at
+    from public.psychometric_attempts a
+    where a.user_id = auth.uid()
+  ),
+  last_reset as (
+    select max(l.created_at) as at
+    from public.audit_log l
+    where l.target_user = auth.uid() and l.action = 'reset_psychometric'
+  )
+  select case
+    -- never taken it
+    when (select at from last_attempt) is null then true
+    -- taken it: only a reset that came AFTER the last attempt reopens it.
+    -- coalesce defaults to FALSE here on purpose. Defaulting to true would
+    -- mean "no reset recorded" reads as "go ahead", which is the opposite of
+    -- what a one-attempt lock is for.
+    else coalesce((select at from last_reset) > (select at from last_attempt), false)
+  end;
 $$;
 
 create or replace function public.admin_verify_meeting(meeting_id uuid, value boolean)
