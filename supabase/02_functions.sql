@@ -108,7 +108,12 @@ security definer
 set search_path = public, pg_temp
 as $$
 begin
-  if public.is_admin() then
+  -- auth.uid() is null when there is no logged-in user: the Supabase SQL
+  -- Editor, the Table Editor, and anything using the service role. Those are
+  -- already fully trusted, and the RPS must be able to repair an account by
+  -- hand -- for example after registering before bootstrap_admin_email was
+  -- set. Without this, the fix silently does nothing.
+  if auth.uid() is null or public.is_admin() then
     return new;
   end if;
   -- Silently pin the privileged columns back to their stored values rather than

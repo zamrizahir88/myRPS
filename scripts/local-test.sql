@@ -66,6 +66,25 @@ begin
   raise notice 'PASS: profile row-level isolation holds';
 end $$;
 
+-- the RPS must still be able to repair an account from the Supabase SQL editor,
+-- where there is no logged-in user at all
+reset role;
+set request.jwt.claim.sub = '';   -- no JWT, as in the SQL editor
+do $$
+begin
+  update public.profiles set approval_state = 'approved'
+   where id = '00000000-0000-0000-0000-0000000000b2';
+  if (select approval_state from public.profiles
+       where id = '00000000-0000-0000-0000-0000000000b2') <> 'approved' then
+    raise exception 'FAIL: the RPS cannot fix an account from the SQL editor';
+  end if;
+  update public.profiles set approval_state = 'pending'
+   where id = '00000000-0000-0000-0000-0000000000b2';
+  raise notice 'PASS: SQL editor can repair an account by hand';
+end $$;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+
 \echo '--- admin approves ---'
 set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000aa';
 select public.admin_set_approval('00000000-0000-0000-0000-0000000000b1', 'approved');
