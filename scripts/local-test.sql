@@ -427,3 +427,96 @@ begin
   if png3 <> 2.00 then raise exception 'FAIL: Tambahan PNG should be 2.00, got %', png3; end if;
   raise notice 'PASS: each semester keeps its own PNG including the fail (0.00 / 1.50 / 2.00)';
 end $$;
+
+\echo '--- the feed ---'
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+
+do $$
+declare pid uuid;
+begin
+  insert into public.posts (user_id, body, subject_code)
+  values (auth.uid(), 'Siapa ambil NMK21103 semester ni? Susah gila', 'NMK21103')
+  returning id into pid;
+  insert into public.post_reactions (post_id, user_id, emoji) values (pid, auth.uid(), '🔥');
+  insert into public.post_comments (post_id, user_id, body) values (pid, auth.uid(), 'Jom study group');
+  raise notice 'PASS: a student can post, react and comment';
+end $$;
+
+do $$
+begin
+  insert into public.posts (user_id, kind, body)
+  values (auth.uid(), 'announcement', 'Free marks for everyone');
+  raise exception 'FAIL: a student posted an announcement';
+exception
+  when insufficient_privilege then raise notice 'PASS: only the RPS may broadcast';
+end $$;
+
+do $$
+begin
+  insert into public.posts (user_id, body)
+  values ('00000000-0000-0000-0000-0000000000b2', 'posting as somebody else');
+  raise exception 'FAIL: a student posted under another account';
+exception
+  when insufficient_privilege then raise notice 'PASS: you can only post as yourself';
+end $$;
+
+-- one reaction per person per post, replaced rather than stacked
+do $$
+declare pid uuid; n int;
+begin
+  select id into pid from public.posts where user_id = auth.uid() limit 1;
+  insert into public.post_reactions (post_id, user_id, emoji) values (pid, auth.uid(), '👏')
+  on conflict (post_id, user_id) do update set emoji = excluded.emoji;
+  select count(*) into n from public.post_reactions where post_id = pid and user_id = auth.uid();
+  if n <> 1 then raise exception 'FAIL: reactions stacked, got %', n; end if;
+  raise notice 'PASS: one reaction per person, switching replaces it';
+end $$;
+
+-- an unapproved account must see none of it
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000c1';
+do $$
+declare n int;
+begin
+  select count(*) into n from public.posts;
+  if n <> 0 then raise exception 'FAIL: unapproved account read % posts', n; end if;
+  select count(*) into n from public.post_comments;
+  if n <> 0 then raise exception 'FAIL: unapproved account read comments'; end if;
+  raise notice 'PASS: unapproved accounts see no posts or comments';
+end $$;
+
+do $$
+begin
+  insert into public.posts (user_id, body) values (auth.uid(), 'let me in');
+  raise exception 'FAIL: unapproved account posted';
+exception
+  when insufficient_privilege then raise notice 'PASS: unapproved accounts cannot post';
+end $$;
+
+-- a student must not be able to rewrite someone else's post
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b2';
+do $$
+begin
+  update public.posts set body = 'hijacked'
+   where user_id = '00000000-0000-0000-0000-0000000000b1';
+  if exists (select 1 from public.posts where body = 'hijacked') then
+    raise exception 'FAIL: one student edited another student''s post';
+  end if;
+  raise notice 'PASS: posts are editable only by their author or the RPS';
+end $$;
+
+-- the RPS can moderate
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000aa';
+do $$
+declare pid uuid;
+begin
+  select id into pid from public.posts
+   where user_id = '00000000-0000-0000-0000-0000000000b1' limit 1;
+  update public.posts set deleted_at = now(), deleted_by = auth.uid() where id = pid;
+  if not exists (select 1 from public.posts where id = pid and deleted_at is not null) then
+    raise exception 'FAIL: the RPS could not remove a post';
+  end if;
+  insert into public.posts (user_id, kind, body)
+  values (auth.uid(), 'announcement', 'Jumpa saya minggu depan');
+  raise notice 'PASS: the RPS can moderate and broadcast';
+end $$;

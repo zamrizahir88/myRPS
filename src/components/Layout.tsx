@@ -30,14 +30,14 @@ export default function Layout() {
         { to: '/admin', label: t.nav.myStudents, icon: <IconPeople />, end: true },
         { to: '/admin/applications', label: t.nav.applications, icon: <IconInbox /> },
         { to: '/admin/curriculum', label: t.nav.curriculum, icon: <IconBook /> },
-        { to: '/community', label: t.nav.community, icon: <IconChat /> },
+        { to: '/feed', label: t.nav.feed, icon: <IconChat /> },
         { to: '/profile', label: t.nav.profile, icon: <IconUser /> },
       ]
     : [
         { to: '/', label: t.nav.dashboard, icon: <IconHome />, end: true },
         { to: '/academic', label: t.nav.academic, icon: <IconChart /> },
         { to: '/pillars', label: t.nav.pillars, icon: <IconStar /> },
-        { to: '/community', label: t.nav.community, icon: <IconChat /> },
+        { to: '/feed', label: t.nav.feed, icon: <IconChat /> },
         { to: '/profile', label: t.nav.profile, icon: <IconUser /> },
       ]
 
@@ -56,7 +56,7 @@ export default function Layout() {
                 {showAdminUi ? (
                   <span className="ml-2 chip bg-navy-700 text-white">{t.nav.roleRps}</span>
                 ) : null}
-                <p className="truncate text-[11px]" style={{ color: 'var(--text-3)' }}>
+                <p className="truncate text-xs font-medium" style={{ color: 'var(--text-2)' }}>
                   {profile?.full_name ?? t.app.tagline}
                 </p>
               </div>

@@ -7,7 +7,7 @@ import { useAcademic } from '../hooks/useAcademic'
 import ProgressBar from '../components/ProgressBar'
 import { Alert, Spinner, StatTile } from '../components/ui'
 import { PILLARS } from '../lib/pillars'
-import type { ChatMessage } from '../lib/types'
+interface Announcement { id: string; body: string; created_at: string }
 
 export default function Dashboard() {
   const { t, f, locale } = useI18n()
@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [pillarsDone, setPillarsDone] = useState(0)
   const [meetings, setMeetings] = useState(0)
   const [hasTest, setHasTest] = useState<boolean | null>(null)
-  const [announcements, setAnnouncements] = useState<ChatMessage[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   // If this account is the configured RPS address but has no admin rights,
   // say so plainly instead of silently showing a student dashboard.
   const [shouldBeAdmin, setShouldBeAdmin] = useState(false)
@@ -33,13 +33,13 @@ export default function Dashboard() {
         supabase.from('pillar_completions').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
         supabase.from('meetings').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
         supabase.from('psychometric_attempts').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
-        supabase.from('chat_messages').select('*').eq('is_announcement', true)
+        supabase.from('posts').select('*').eq('kind', 'announcement')
           .is('deleted_at', null).order('created_at', { ascending: false }).limit(3),
       ])
       setPillarsDone(p.count ?? 0)
       setMeetings(m.count ?? 0)
       setHasTest((ps.count ?? 0) > 0)
-      setAnnouncements((ann.data as ChatMessage[]) ?? [])
+      setAnnouncements((ann.data as Announcement[]) ?? [])
 
       const { data: setting } = await supabase
         .from('app_settings').select('value').eq('key', 'bootstrap_admin_email').maybeSingle()

@@ -40,6 +40,7 @@ const AUDIT = () => {
   }
 
   const out = []
+  let audited = 0
   document.querySelectorAll('*').forEach((el) => {
     const text = [...el.childNodes]
       .filter((n) => n.nodeType === 3)
@@ -54,6 +55,7 @@ const AUDIT = () => {
 
     const fg = parse(style.color)
     if (!fg || fg.a < 0.5) return
+    audited++
     const size = parseFloat(style.fontSize)
     const bold = +style.fontWeight >= 700
     const large = size >= 24 || (size >= 18.66 && bold)
@@ -70,7 +72,7 @@ const AUDIT = () => {
       })
     }
   })
-  return out
+  return { issues: out, audited }
 }
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
@@ -81,10 +83,21 @@ for (const theme of ['light', 'dark']) {
   await page.goto(URL, { waitUntil: 'networkidle' })
   await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme)
   await page.waitForTimeout(400)
-  const issues = await page.evaluate(AUDIT)
+  const { issues, audited } = await page.evaluate(AUDIT)
+
+  // A page that failed to render has no text, and an empty audit would
+  // otherwise report a clean pass. That happened.
+  const MIN_ELEMENTS = 40
+  if (audited < MIN_ELEMENTS) {
+    console.error(`  ${theme.padEnd(5)} only ${audited} text elements found — the preview did not render.`)
+    console.error('        Check the browser console; a thrown component renders nothing.')
+    failures += 1
+    await page.close()
+    continue
+  }
 
   if (issues.length === 0) {
-    console.log(`  ${theme.padEnd(5)} no contrast failures`)
+    console.log(`  ${theme.padEnd(5)} no contrast failures (${audited} text elements checked)`)
   } else {
     failures += issues.length
     console.log(`  ${theme.padEnd(5)} ${issues.length} failure(s):`)

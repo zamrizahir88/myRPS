@@ -28,7 +28,41 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Avatar name="Mohd Zamri" size={36} />
         </div>
 
+        {/* Greeting's markup, inlined: the component needs AuthProvider */}
+        <div className="flex items-center gap-4">
+          <Avatar name="Mohd Zamri" size={52} />
+          <div>
+            <h1 className="font-display text-2xl font-extrabold tracking-tight">
+              Helo, <span style={{ color: 'var(--brand)' }}>Ts. Dr. Mohd Zamri Bin Zahir Ahmad</span>!
+            </h1>
+            <p className="mt-0.5 text-sm text-[color:var(--text-2)]">Rakan Pendamping Siswa</p>
+          </div>
+        </div>
         <h1 className="h-page">Kitchen sink</h1>
+
+        {/* a feed post, with every chip state */}
+        <article className="card border-l-4 border-l-gold">
+          <header className="flex items-start gap-3">
+            <Avatar name="Muhammad Rusydi" size={40} />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-sm font-bold">Muhammad Rusydi bin Rahimie</span>
+                <span className="chip tint-warn">📣 Pengumuman</span>
+                <span className="chip tint-info">🤝 Perlu bantuan</span>
+                <span className="chip tint-muted tnum">#NMK21103</span>
+                <span className="text-xs text-[color:var(--text-3)]">· 2h</span>
+              </div>
+              <p className="mt-1.5 text-sm">Siapa ambil NMK21103 semester ni? Susah gila 😩</p>
+            </div>
+          </header>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="chip tint-info">👏 <span className="tnum">3</span></span>
+            <span className="chip tint-muted">🔥 <span className="tnum">2</span></span>
+            <span className="chip tint-muted">❤️</span>
+            <span className="chip tint-muted">💪</span>
+            <span className="chip tint-muted">💬 4 Komen</span>
+          </div>
+        </article>
 
         <div className="card space-y-2">
           <p className="text-sm">Body text on a card.</p>

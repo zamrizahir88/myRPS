@@ -35,11 +35,11 @@ echo "Installing Supabase stand-ins…"
 $PSQL -d myrps_verify -f scripts/local-stub.sql >/dev/null
 
 echo "Applying migrations…"
-for f in supabase/0*.sql; do
+for f in supabase/[0-9][0-9]_*.sql; do
   printf '  %-34s' "$f"
   $PSQL -d myrps_verify -f "$f" >/dev/null && echo ok
 done
-# 08_psychometric_items.sql is part of supabase/0*.sql above
+# 08_psychometric_items.sql is part of the numbered set above
 
 echo
 echo "Running the security suite…"

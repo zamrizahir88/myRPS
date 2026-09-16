@@ -11,7 +11,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const files = ['RUN_THIS_IN_SUPABASE.sql', 'FIX_MY_LOGIN.sql', 'MIGRATE_TERMS.sql', 'MIGRATE_FIXES.sql']
+const files = ['RUN_THIS_IN_SUPABASE.sql', 'FIX_MY_LOGIN.sql', 'MIGRATE_TERMS.sql', 'MIGRATE_FIXES.sql', 'MIGRATE_FEED.sql']
 let bad = false
 
 for (const name of files) {
