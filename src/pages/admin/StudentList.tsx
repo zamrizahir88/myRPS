@@ -31,21 +31,16 @@ export default function StudentList() {
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [onlyFlagged, setOnlyFlagged] = useState(true)
+  const [showTestAccounts, setShowTestAccounts] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     void (async () => {
-      const [{ data, error: err }, { data: adminRows }] = await Promise.all([
-        supabase.from('student_summary').select('*')
-          .eq('approval_state', 'approved').order('full_name'),
-        // readable to admins only, by policy
-        supabase.from('admins').select('user_id'),
-      ])
+      const { data, error: err } = await supabase
+        .from('student_summary').select('*')
+        .eq('approval_state', 'approved').order('full_name')
       if (err) setError(err.message)
-      // Belt and braces: the view excludes admins too, but filtering here as
-      // well means this is right immediately, without re-running any SQL.
-      const adminIds = new Set(((adminRows as { user_id: string }[]) ?? []).map((a) => a.user_id))
-      setRows(((data as StudentSummary[]) ?? []).filter((r) => !adminIds.has(r.user_id)))
+      setRows((data as StudentSummary[]) ?? [])
       setLoading(false)
     })()
   }, [])
@@ -59,6 +54,8 @@ export default function StudentList() {
     const q = query.trim().toLowerCase()
     return decorated
       .filter(({ row, flags }) => {
+        // Your own account and any demo account are test data, not advisees.
+        if (!showTestAccounts && (row.is_staff || row.is_demo)) return false
         if (onlyFlagged && flags.length === 0) return false
         if (!q) return true
         return (row.full_name ?? '').toLowerCase().includes(q)
@@ -68,7 +65,7 @@ export default function StudentList() {
         const severity = (f: Flag[]) => f.filter((x) => x.tone === 'critical').length * 10 + f.length
         return severity(b.flags) - severity(a.flags)
       })
-  }, [decorated, query, onlyFlagged])
+  }, [decorated, query, onlyFlagged, showTestAccounts])
 
   function exportCsv() {
     const header = ['Name', 'Matric', 'Credits', 'Required', 'CGPA', 'Pillars', 'Meetings', 'Verified', 'Last meeting', 'Flags']
@@ -104,6 +101,13 @@ export default function StudentList() {
           <input type="checkbox" checked={onlyFlagged} onChange={(e) => setOnlyFlagged(e.target.checked)} />
           {t.admin.attention}
         </label>
+        <label className="flex items-center gap-2 text-sm text-[color:var(--text-2)]">
+          <input
+            type="checkbox" checked={showTestAccounts}
+            onChange={(e) => setShowTestAccounts(e.target.checked)}
+          />
+          {t.admin.showTestAccounts}
+        </label>
         <button onClick={exportCsv} className="btn-ghost ml-auto text-xs">{t.admin.exportCsv}</button>
       </div>
 
@@ -118,6 +122,7 @@ export default function StudentList() {
                 <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                   <th className="px-2 py-2 font-medium">{t.admin.name}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.matric}</th>
+                  <th className="px-2 py-2 font-medium">{t.admin.currentTerm}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.credits}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.cgpa}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.pillars}</th>
@@ -130,8 +135,18 @@ export default function StudentList() {
               <tbody>
                 {filtered.map(({ row, flags }) => (
                   <tr key={row.user_id} className="border-b border-[color:var(--border)] last:border-0">
-                    <td className="px-2 py-2 font-medium">{row.full_name ?? t.common.none}</td>
+                    <td className="px-2 py-2 font-medium">
+                      {row.full_name ?? t.common.none}
+                      {(row.is_staff || row.is_demo) && (
+                        <span className="ml-2 chip bg-gold-50 text-gold-700">{t.admin.testAccount}</span>
+                      )}
+                    </td>
                     <td className="tnum px-2 py-2">{row.matric_no ?? t.common.none}</td>
+                    <td className="px-2 py-2 text-xs whitespace-nowrap">
+                      {row.current_study_year
+                        ? `Y${row.current_study_year} · S${row.current_semester} · ${row.current_session}`
+                        : t.common.none}
+                    </td>
                     <td className="tnum px-2 py-2">
                       {row.credits_earned}/{row.credits_required}
                       <span className="ml-1 text-xs text-[color:var(--text-3)]">

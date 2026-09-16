@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useI18n } from '../../i18n'
 import { useAcademic } from '../../hooks/useAcademic'
-import { semesterLabel } from '../../lib/academic'
+import { termLabel } from '../../lib/academic'
 import { PILLARS } from '../../lib/pillars'
 import { DEFINITIONS, INTELLIGENCE_KEYS } from '../../lib/intelligences'
 import RadarChart from '../../components/RadarChart'
@@ -258,39 +258,63 @@ export default function StudentDetail() {
 
       <div className="card">
         <h3 className="section-title mb-3">{t.academic.title}</h3>
-        <div className="-mx-2 overflow-x-auto">
-          <table className="w-full min-w-[620px] text-sm">
-            <thead>
-              <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
-                <th className="px-2 py-2 font-medium">{t.academic.subject}</th>
-                <th className="px-2 py-2 font-medium">{t.admin.credit}</th>
-                <th className="px-2 py-2 font-medium">{t.academic.semester}</th>
-                <th className="px-2 py-2 font-medium">{t.academic.grade}</th>
-                <th className="px-2 py-2 font-medium">{t.academic.status}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {academic.records.map((r) => {
-                const s = academic.subjectMap.get(r.subject_id)
-                return (
-                  <tr key={r.id} className="border-b border-[color:var(--border)] last:border-0">
-                    <td className="px-2 py-2">
-                      <span className="font-medium">{s?.code}</span>{' '}
-                      <span className="text-[color:var(--text-2)]">{s?.name_en}</span>
-                      {r.attempt_no > 1 && <span className="ml-1 text-xs text-[color:var(--text-3)]">#{r.attempt_no}</span>}
-                    </td>
-                    <td className="tnum px-2 py-2">{s?.credit}</td>
-                    <td className="px-2 py-2 text-xs">{semesterLabel(r.semester_taken, locale)}</td>
-                    <td className="tnum px-2 py-2">{r.grade ?? t.common.none}</td>
-                    <td className={`px-2 py-2 ${r.state === 'fail' ? 'font-medium text-status-critical' : ''}`}>
-                      {t.academic[r.state]}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        {academic.terms.length === 0 ? (
+          <Alert tone="warning">{t.academic.noTerms}</Alert>
+        ) : (
+          <div className="space-y-4">
+            {academic.terms.map((term) => {
+              const records = academic.records.filter((r) => r.term_id === term.id)
+              const gpa = academic.termGpas.find((g) => g.term.id === term.id)?.gpa
+              return (
+                <div key={term.id} className="rounded-xl border p-3" style={{ borderColor: 'var(--border)' }}>
+                  <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-semibold">{termLabel(term, locale)}</span>
+                    {gpa != null && (
+                      <span className="text-xs" style={{ color: 'var(--text-2)' }}>
+                        {t.academic.termGpa}{' '}
+                        <span
+                          className="tnum font-bold"
+                          style={{ color: gpa < 2 ? 'var(--status-critical)' : 'var(--text)' }}
+                        >
+                          {gpa.toFixed(2)}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  {records.length === 0 ? (
+                    <p className="text-xs" style={{ color: 'var(--text-3)' }}>
+                      {t.academic.noSubjectsInTerm}
+                    </p>
+                  ) : (
+                    <ul className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                      {records.map((r) => {
+                        const subject = academic.subjectMap.get(r.subject_id)
+                        return (
+                          <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 text-sm">
+                            <span className="tnum font-semibold">{subject?.code}</span>
+                            <span className="min-w-0 flex-1 truncate" style={{ color: 'var(--text-2)' }}>
+                              {locale === 'ms' ? subject?.name_ms ?? subject?.name_en : subject?.name_en}
+                            </span>
+                            <span className="tnum text-xs" style={{ color: 'var(--text-3)' }}>
+                              {subject?.credit} {t.academic.creditsShort}
+                            </span>
+                            {r.grade && <span className="tnum font-semibold">{r.grade}</span>}
+                            <span
+                              className="text-xs font-semibold"
+                              style={{ color: r.state === 'fail' ? 'var(--status-critical)' : 'var(--text-2)' }}
+                            >
+                              {t.academic[r.state]}
+                            </span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <details className="card">

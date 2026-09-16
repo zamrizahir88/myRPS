@@ -17,9 +17,10 @@ export function RequireStudent({ children }: { children: ReactNode }) {
 }
 
 export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { session, isAdmin, loading } = useAuth()
+  const { session, isAdmin, previewAsStudent, loading } = useAuth()
   if (loading) return <Spinner />
   if (!session) return <Navigate to="/login" replace />
-  if (!isAdmin) return <Navigate to="/" replace />
+  // Still an admin, just looking at the student side — send them to it.
+  if (!isAdmin || previewAsStudent) return <Navigate to="/" replace />
   return <>{children}</>
 }

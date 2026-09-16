@@ -51,6 +51,7 @@ export interface Profile {
   avatar_path: string | null
   consent_version: string | null
   consent_at: string | null
+  is_demo: boolean
   profile_completed: boolean
   rejection_reason: string | null
   created_at: string
@@ -71,6 +72,15 @@ export interface Subject {
   is_active: boolean
 }
 
+export interface StudentTerm {
+  id: string
+  user_id: string
+  session: string      // '2026/2027'
+  semester: number     // 1, 2, or 3 for Semester Tambahan
+  study_year: number
+  created_at: string
+}
+
 export interface StudentRecord {
   id: string
   user_id: string
@@ -79,6 +89,7 @@ export interface StudentRecord {
   state: RecordState
   grade: string | null
   semester_taken: string | null
+  term_id: string | null
 }
 
 export interface GradeScale {
@@ -152,6 +163,11 @@ export interface StudentSummary {
   intake_year: string | null
   profile_completed: boolean
   career_goal: string | null
+  is_demo: boolean
+  is_staff: boolean
+  current_session: string | null
+  current_semester: number | null
+  current_study_year: number | null
   credits_earned: number
   credits_required: number
   cgpa: number | null

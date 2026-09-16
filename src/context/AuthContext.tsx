@@ -7,11 +7,19 @@ import type { Profile } from '../lib/types'
 interface AuthValue {
   session: Session | null
   profile: Profile | null
+  /** True when the account is an RPS admin. Unaffected by preview mode. */
   isAdmin: boolean
+  /** True when an admin has switched into the student view to try it out. */
+  previewAsStudent: boolean
+  setPreviewAsStudent: (on: boolean) => void
+  /** What the interface should show: false while an admin is previewing. */
+  showAdminUi: boolean
   loading: boolean
   refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
 }
+
+const PREVIEW_KEY = 'myrps.previewAsStudent'
 
 const AuthContext = createContext<AuthValue | null>(null)
 
@@ -20,6 +28,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [previewAsStudent, setPreview] = useState(() => {
+    try {
+      return localStorage.getItem(PREVIEW_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+
+  const setPreviewAsStudent = useCallback((on: boolean) => {
+    setPreview(on)
+    try {
+      localStorage.setItem(PREVIEW_KEY, on ? '1' : '0')
+    } catch {
+      // not fatal — the switch just won't survive a reload
+    }
+  }, [])
 
   const loadProfile = useCallback(async (userId: string | undefined) => {
     if (!userId) {
@@ -65,6 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       isAdmin,
+      previewAsStudent,
+      setPreviewAsStudent,
+      showAdminUi: isAdmin && !previewAsStudent,
       loading,
       refreshProfile: () => loadProfile(session?.user.id),
       signOut: async () => {
@@ -73,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsAdmin(false)
       },
     }),
-    [session, profile, isAdmin, loading, loadProfile],
+    [session, profile, isAdmin, previewAsStudent, setPreviewAsStudent, loading, loadProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

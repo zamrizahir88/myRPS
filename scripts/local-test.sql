@@ -138,15 +138,58 @@ begin
   raise notice 'PASS: repeat counted once (6 credits), CGPA 2.50 uses latest attempts';
 end $$;
 
+-- Terms: the same subject may be taken in as many terms as needed, but only
+-- once within a single term.
 do $$
-declare n int;
+declare t1 uuid; t2 uuid; sid uuid;
 begin
-  insert into public.student_records (user_id, subject_id, attempt_no, state, grade)
-  select auth.uid(), id, 3, 'pass', 'A' from public.curriculum_subjects
-   where code = 'SMQ11103' and intake_year = '2022';
-  raise exception 'FAIL: duplicate attempt_no was accepted';
+  select id into sid from public.curriculum_subjects
+   where code = 'NMK21103' and intake_year = '2022';
+
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 1, 1) returning id into t1;
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 2, 1) returning id into t2;
+
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values (auth.uid(), sid, t1, 'fail', 'D');
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values (auth.uid(), sid, t2, 'pass', 'B');
+  raise notice 'PASS: a failed subject can be retaken in a later term';
+end $$;
+
+do $$
+declare sid uuid; tid uuid;
+begin
+  select id into sid from public.curriculum_subjects
+   where code = 'NMK21103' and intake_year = '2022';
+  select id into tid from public.student_terms
+   where user_id = auth.uid() and session = '2026/2027' and semester = 1;
+  insert into public.student_records (user_id, subject_id, term_id, state)
+  values (auth.uid(), sid, tid, 'active');
+  raise exception 'FAIL: the same subject was added twice to one term';
 exception
-  when unique_violation then raise notice 'PASS: duplicate attempt blocked by constraint';
+  when unique_violation then
+    raise notice 'PASS: a subject cannot be added twice within one term';
+end $$;
+
+do $$
+declare g numeric;
+begin
+  -- D (1.00) then B (3.00) on a 3-credit subject, plus the earlier C and B.
+  -- Only the later B counts for NMK21103.
+  select cgpa into g from public.v_student_cgpa where user_id = auth.uid();
+  if g is null then raise exception 'FAIL: no CGPA computed'; end if;
+  if exists (
+    select 1 from public.v_gpa_attempts
+    where user_id = auth.uid()
+      and subject_id = (select id from public.curriculum_subjects
+                         where code = 'NMK21103' and intake_year = '2022')
+      and grade <> 'B'
+  ) then
+    raise exception 'FAIL: the repeated attempt did not supersede the failed one';
+  end if;
+  raise notice 'PASS: the later term supersedes the earlier attempt in CGPA (now %)', g;
 end $$;
 
 \echo '--- psychometric is one attempt, enforced in the database ---'

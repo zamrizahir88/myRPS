@@ -8,6 +8,6 @@ import Dashboard from './Dashboard'
  * their advisees.
  */
 export default function Home() {
-  const { isAdmin } = useAuth()
-  return isAdmin ? <Navigate to="/admin" replace /> : <Dashboard />
+  const { showAdminUi } = useAuth()
+  return showAdminUi ? <Navigate to="/admin" replace /> : <Dashboard />
 }

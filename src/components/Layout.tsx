@@ -22,10 +22,10 @@ interface Item { to: string; label: string; icon: JSX.Element; end?: boolean }
 
 export default function Layout() {
   const { t, toggle } = useI18n()
-  const { profile, isAdmin, signOut } = useAuth()
+  const { profile, isAdmin, showAdminUi, previewAsStudent, setPreviewAsStudent, signOut } = useAuth()
   const { theme, toggle: toggleTheme } = useTheme()
 
-  const items: Item[] = isAdmin
+  const items: Item[] = showAdminUi
     ? [
         { to: '/admin', label: t.nav.myStudents, icon: <IconPeople />, end: true },
         { to: '/admin/applications', label: t.nav.applications, icon: <IconInbox /> },
@@ -53,7 +53,7 @@ export default function Layout() {
               <Logo size={34} />
               <div className="min-w-0">
                 <Wordmark />
-                {isAdmin ? (
+                {showAdminUi ? (
                   <span className="ml-2 chip bg-navy-700 text-white">{t.nav.roleRps}</span>
                 ) : null}
                 <p className="truncate text-[11px]" style={{ color: 'var(--text-3)' }}>
@@ -87,7 +87,25 @@ export default function Layout() {
         </div>
       </header>
 
+      {/* Sitting in the student view as the RPS — say so loudly, and give a
+          one-click way out. */}
+      {isAdmin && previewAsStudent && (
+        <div className="bg-gold px-4 py-2 text-center text-xs font-semibold text-[color:var(--accent-ink)]">
+          {t.nav.previewBanner}{' '}
+          <button onClick={() => setPreviewAsStudent(false)} className="underline underline-offset-2">
+            {t.nav.exitPreview}
+          </button>
+        </div>
+      )}
+
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 md:pb-5">
+        {isAdmin && !previewAsStudent && (
+          <div className="mb-4 flex justify-end">
+            <button onClick={() => setPreviewAsStudent(true)} className="btn-ghost px-3 py-1.5 text-xs">
+              {t.nav.previewAsStudent}
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
 

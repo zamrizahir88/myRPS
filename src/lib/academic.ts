@@ -105,6 +105,31 @@ export function projectedGpa(
   return { gpa: credits > 0 ? Math.round((weighted / credits) * 100) / 100 : null, credits }
 }
 
+/** Academic sessions offered in the pickers: 2026/2027 and 15 years on. */
+export function sessionOptions(): string[] {
+  const out: string[] = []
+  for (let y = 2026; y <= 2041; y++) out.push(`${y}/${y + 1}`)
+  return out
+}
+
+/** 'Tahun 2 · Semester 1 · Sesi 2026/2027' */
+export function termLabel(
+  term: { study_year: number; semester: number; session: string },
+  locale: 'en' | 'ms',
+): string {
+  const sem = term.semester === 3
+    ? (locale === 'ms' ? 'Semester Tambahan' : 'Special Semester')
+    : `${locale === 'ms' ? 'Semester' : 'Semester'} ${term.semester}`
+  const year = locale === 'ms' ? `Tahun ${term.study_year}` : `Year ${term.study_year}`
+  const session = locale === 'ms' ? `Sesi ${term.session}` : `Session ${term.session}`
+  return `${year} · ${sem} · ${session}`
+}
+
+/** Sortable, matching public.term_key() in the database. */
+export function termKey(term: { session: string; semester: number }): string {
+  return `${term.session}-${term.semester}`
+}
+
 /** '2024-S1' -> 'Sem 1, 2024/2025'. */
 export function semesterLabel(value: string | null, locale: 'en' | 'ms'): string {
   if (!value) return '—'
