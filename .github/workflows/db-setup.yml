@@ -1,11 +1,14 @@
 name: Set up Supabase database
 
 # Applies everything in supabase/ to your project, then verifies it.
-# Run it from the Actions tab — you don't need Node on your own machine.
+# You don't need anything installed — it runs on GitHub's machines.
 #
-# Needs one secret: SUPABASE_DB_URL
-#   Supabase dashboard → Connect → Session pooler → copy URI,
+# One-time setup: add a repository secret named SUPABASE_DB_URL.
+#   Supabase dashboard → Connect → Session pooler → copy the URI,
 #   replace [YOUR-PASSWORD] with your database password.
+#
+# GitHub encrypts that secret. It is never shown in logs, never visible in the
+# repository, and nobody — including anyone helping you — can read it back.
 
 on:
   workflow_dispatch:
@@ -16,6 +19,14 @@ on:
         default: apply
         type: choice
         options: [apply, check-only]
+      adhoc:
+        description: 'One-off script from supabase/adhoc/ (e.g. make-admin.sql). Leave blank for none.'
+        required: false
+        type: string
+      email:
+        description: 'Email address, if the one-off script needs one.'
+        required: false
+        type: string
 
 jobs:
   migrate:
@@ -33,13 +44,29 @@ jobs:
       - name: Apply and verify
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          ADHOC: ${{ inputs.adhoc }}
+          EMAIL: ${{ inputs.email }}
         run: |
           if [ -z "$DATABASE_URL" ]; then
-            echo "::error::SUPABASE_DB_URL is not set. Add it under Settings → Secrets and variables → Actions."
+            echo "::error::SUPABASE_DB_URL is not set. Add it under Settings → Secrets and variables → Actions → Repository secrets."
             exit 1
           fi
+
           if [ "${{ inputs.mode }}" = "check-only" ]; then
             node scripts/setup-db.mjs --check
-          else
-            node scripts/setup-db.mjs
+            exit 0
           fi
+
+          args=""
+          if [ -n "$ADHOC" ]; then
+            script="supabase/adhoc/${ADHOC##*/}"     # no path traversal
+            if [ ! -f "$script" ]; then
+              echo "::error::No such script: $script"
+              echo "Available:"; ls supabase/adhoc/
+              exit 1
+            fi
+            args="--adhoc $script"
+            [ -n "$EMAIL" ] && args="$args --set email=$EMAIL"
+          fi
+
+          node scripts/setup-db.mjs $args

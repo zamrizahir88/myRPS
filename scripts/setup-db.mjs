@@ -24,7 +24,31 @@ import { createInterface } from 'node:readline/promises'
 import pg from 'pg'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const checkOnly = process.argv.includes('--check')
+const argv = process.argv.slice(2)
+const checkOnly = argv.includes('--check')
+
+function flag(name) {
+  const i = argv.indexOf(name)
+  return i === -1 ? null : argv[i + 1] ?? null
+}
+
+/**
+ * --adhoc supabase/adhoc/foo.sql   run a one-off script after the migrations
+ * --set  key=value                 expose it to that script as
+ *                                  current_setting('myrps.key')
+ *
+ * Values are passed as query parameters, never interpolated into the SQL
+ * text, so a stray quote in an email address cannot change what runs.
+ */
+const adhocPath = flag('--adhoc')
+const settings = argv
+  .map((a, i) => (a === '--set' ? argv[i + 1] : null))
+  .filter(Boolean)
+  .map((pair) => {
+    const idx = pair.indexOf('=')
+    if (idx === -1) throw new Error(`--set expects key=value, got "${pair}"`)
+    return [pair.slice(0, idx), pair.slice(idx + 1)]
+  })
 
 const c = {
   dim: (s) => `\x1b[2m${s}\x1b[0m`,
@@ -216,6 +240,34 @@ async function main() {
         await client.end()
         process.exit(1)
       }
+    }
+  }
+
+  if (adhocPath) {
+    const full = join(root, adhocPath)
+    if (!existsSync(full)) {
+      console.error(c.red(`\nNo such script: ${adhocPath}`))
+      await client.end()
+      process.exit(1)
+    }
+    console.log(`\n${c.bold('Running one-off script')}`)
+    for (const [key, value] of settings) {
+      await client.query('select set_config($1, $2, false)', [`myrps.${key}`, value])
+      console.log(c.dim(`  myrps.${key} = ${value}`))
+    }
+    const ok = await apply(client, { label: adhocPath, path: full, required: true })
+    if (!ok) {
+      await client.end()
+      process.exit(1)
+    }
+    // Show whatever the script's final SELECT returned, so the result table is
+    // visible in the Actions log.
+    const sql = readFileSync(full, 'utf8')
+    const lastSelect = sql.split(/;\s*$/m).map((s2) => s2.trim())
+      .filter((s2) => /^select/i.test(s2)).pop()
+    if (lastSelect) {
+      const { rows } = await client.query(lastSelect)
+      if (rows.length) console.table(rows)
     }
   }
 
