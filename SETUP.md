@@ -141,6 +141,14 @@ Supabase left sidebar → **Project Settings** (the gear at the bottom).
 **The Project URL** is under **General** or **Data API**, and looks like
 `https://abcdefghijk.supabase.co`.
 
+> Supabase also shows longer endpoint addresses ending in `/rest/v1/` or
+> `/auth/v1/`. Those are **not** the project URL — cut everything after
+> `.supabase.co`. The site trims it for you if you get this wrong, but it is
+> clearer to paste the short one.
+>
+> ✅ `https://abcdefghijk.supabase.co`
+> ❌ `https://abcdefghijk.supabase.co/rest/v1/`
+
 **The key** is under **API Keys**. You will see two kinds:
 
 | What you see | Use it? |
@@ -171,15 +179,19 @@ Supabase left sidebar → **Project Settings** (the gear at the bottom).
 1. Go to **<https://github.com/zamrizahir88/myRPS>**
 2. **Settings** tab (top right of the repo, not your account settings)
 3. Left sidebar → **Secrets and variables** → **Actions**
-4. Click **New repository secret**, twice:
+4. You will see two tabs, **Secrets** and **Variables**. Stay on **Secrets**.
+   The page has two sections — **Environment secrets** and **Repository
+   secrets**. Use **Repository secrets**: click the green
+   **New repository secret** button in that section, twice.
 
 | Name | Secret |
 |---|---|
 | `VITE_SUPABASE_URL` | your Project URL |
 | `VITE_SUPABASE_ANON_KEY` | your **publishable** key (`sb_publishable_...`) |
 
-5. Now click the **Variables** tab (next to Secrets) → **New repository
-   variable**, three times:
+5. Now click the **Variables** tab. Same layout — use the **Repository
+   variables** section and its **New repository variable** button, three
+   times:
 
 | Name | Value |
 |---|---|
@@ -223,6 +235,7 @@ appear in your **Applications** queue waiting for you to approve them.
 | SQL editor shows a red error | Copy the error text and send it to me |
 | "PROBLEM" in the check query | Tell me which row |
 | Site loads but says "Missing VITE_SUPABASE_URL" | Part 4 secrets are missing or misspelled — re-run the deploy after fixing |
+| Every page is blank and the console says the key is a SECRET key | You pasted `sb_secret_...`. Replace it with `sb_publishable_...` and revoke the secret one |
 | "Invalid API key" once signed in | You used the secret key instead of the publishable one, or the key was revoked. Put the publishable key in and re-run the deploy |
 | Registration fails with an error | The email is not `@studentmail.unimap.edu.my`. That is the gate working |
 | You registered but have no RPS Panel | `bootstrap_admin_email` was not set before you registered. Tell me and I'll give you a one-line fix |
