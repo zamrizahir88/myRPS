@@ -5,8 +5,5 @@ dist
 .DS_Store
 *.log
 
-# Reference PDFs are UniMAP-internal / third-party licensed — keep them local
-*.pdf
-private/
 dist
 tsconfig.tsbuildinfo

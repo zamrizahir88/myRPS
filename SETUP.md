@@ -2,7 +2,19 @@
 
 Written for someone who has never used Supabase.
 
-Most of the database work is now a single command. What's left is four settings
+## Where things stand right now
+
+The **code** is finished and sitting in this repository. The **Supabase project
+does not exist yet** — only you can create it, because it lives in your account.
+
+Think of it as a house that is fully built but not yet connected to water and
+electricity. Steps 1 to 5 below are the connection.
+
+Nothing has been done on your Supabase account by anyone but you.
+
+---
+
+Most of the database work is a single command. What's left is four settings
 in two dashboards — those are account settings, not database objects, so no
 script can do them for you.
 
@@ -57,7 +69,7 @@ npm install
 npm run db:setup
 ```
 
-It asks for the connection string, applies all seven migrations in order,
+It asks for the connection string, applies all eight migrations in order,
 and then checks its own work:
 
 ```
@@ -69,7 +81,7 @@ Applying migrations
   05_storage.sql                    ok
   06_seed.sql                       ok
   07_realtime.sql                   ok
-  private/psychometric_items.sql    ok
+  08_psychometric_items.sql         ok
 
 Checking the result
   ✓ Row Level Security on every table
@@ -79,10 +91,7 @@ Checking the result
   ✓ Avatar bucket is private
 ```
 
-Drop the `psychometric_items.sql` file I sent you into a `private/` folder
-first and it gets applied too. It is not in this repository on purpose: the
-Multiple Intelligences Test is free to use but licensed *"not to be sold or
-published"*, and this repo is public. `private/` is gitignored.
+That includes the 70 psychometric statements — nothing to paste separately.
 
 **Re-running is safe.** Every migration is idempotent and student data is never
 touched, so `npm run db:setup` is also how you apply future changes. To check
@@ -92,15 +101,12 @@ an existing project without changing anything: `npm run db:check`.
 
 Do it from GitHub instead. Add a repository secret `SUPABASE_DB_URL` with the
 same connection string (**Settings → Secrets and variables → Actions**), then
-**Actions → Set up Supabase database → Run workflow**. Optionally add a second
-secret `PSYCHOMETRIC_ITEMS_SQL` with the contents of that file pasted in — a
-secret is not published, so it is a fine place for it.
+**Actions → Set up Supabase database → Run workflow**.
 
 ### Prefer to paste SQL by hand?
 
 The files in `supabase/` are plain SQL. Open the Supabase **SQL Editor** and run
-them in numbered order, `01` through `07`, then the psychometric file. Same
-result, more clicking.
+them in numbered order, `01` through `08`. Same result, more clicking.
 
 ---
 
@@ -215,7 +221,7 @@ students is about 2 MB.
 **Approving a student does not email them.** Tell them to sign in again.
 
 **Psychometric test shows as unavailable** → the question bank isn't loaded.
-Put the file in `private/` and re-run `npm run db:setup`.
+Re-run `npm run db:setup`, or run `supabase/08_psychometric_items.sql` by hand.
 
 **Registration fails with a 500** → the address is outside
 `allowed_email_domain`. That's the gate working.
@@ -223,7 +229,7 @@ Put the file in `private/` and re-run `npm run db:setup`.
 ## Where things live
 
 ```
-supabase/          the migrations, numbered in the order they must run
+supabase/          the 8 migrations, numbered in the order they must run
 scripts/setup-db.mjs   applies them and verifies the result
 scripts/local-test.sql the security test suite
 scripts/verify-local.sh  runs both against a throwaway local database

@@ -6,11 +6,6 @@ name: Set up Supabase database
 # Needs one secret: SUPABASE_DB_URL
 #   Supabase dashboard → Connect → Session pooler → copy URI,
 #   replace [YOUR-PASSWORD] with your database password.
-#
-# Optional secret: PSYCHOMETRIC_ITEMS_SQL
-#   Paste the whole contents of psychometric_items.sql. It is kept out of this
-#   repo because the test is licensed "not to be sold or published"; a secret
-#   is not published, so this is a fine place for it.
 
 on:
   workflow_dispatch:
@@ -34,21 +29,6 @@ jobs:
 
       - name: Install the Postgres client library
         run: npm install pg@^8 --no-save
-
-      # The secrets context is not usable in a step `if:`, so the secret goes
-      # through env and the shell decides.
-      - name: Restore the psychometric item bank
-        env:
-          ITEMS: ${{ secrets.PSYCHOMETRIC_ITEMS_SQL }}
-        run: |
-          if [ -n "$ITEMS" ]; then
-            mkdir -p private
-            printf '%s\n' "$ITEMS" > private/psychometric_items.sql
-            echo "Item bank restored ($(wc -l < private/psychometric_items.sql) lines)."
-          else
-            echo "No PSYCHOMETRIC_ITEMS_SQL secret set — skipping the question bank."
-            echo "The app will work, but the psychometric test will show as unavailable."
-          fi
 
       - name: Apply and verify
         env:

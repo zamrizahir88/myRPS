@@ -39,9 +39,7 @@ for f in supabase/0*.sql; do
   printf '  %-34s' "$f"
   $PSQL -d myrps_verify -f "$f" >/dev/null && echo ok
 done
-[ -f private/psychometric_items.sql ] && \
-  $PSQL -d myrps_verify -f private/psychometric_items.sql >/dev/null && \
-  echo "  private/psychometric_items.sql     ok"
+# 08_psychometric_items.sql is part of supabase/0*.sql above
 
 echo
 echo "Running the security suite…"

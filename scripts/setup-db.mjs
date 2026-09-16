@@ -64,13 +64,6 @@ function migrationFiles() {
     .sort()
     .map((f) => ({ label: f, path: join(root, 'supabase', f), required: true }))
 
-  // The psychometric question bank is not committed — the instrument is
-  // licensed "not to be sold or published" and this repo is public. If the
-  // file I sent you is sitting in private/, it gets applied too.
-  const items = join(root, 'private', 'psychometric_items.sql')
-  if (existsSync(items)) {
-    files.push({ label: 'private/psychometric_items.sql', path: items, required: false })
-  }
   return files
 }
 
@@ -132,7 +125,7 @@ const CHECKS = [
     ok: (r) => !r.detail,
     fail: (r) =>
       r.detail === 'empty'
-        ? 'Not loaded. Put psychometric_items.sql in private/ and run this again.'
+        ? 'Not loaded — check that supabase/08_psychometric_items.sql ran.'
         : `Item bank looks wrong (${r.detail}).`,
     warnOnly: true,
   },

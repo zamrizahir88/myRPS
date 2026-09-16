@@ -83,9 +83,9 @@ are recorded in an audit log.
 
 The psychometric instrument is the **Multiple Intelligences Test** by
 V Chislett MSc and A Chapman (2005-06), based on Howard Gardner's MI model,
-available free from businessballs.com. Its terms are *"not to be sold or
-published"*, so the question bank is **not** in this repository — it is seeded
-directly into your own Supabase project, behind a login. See SETUP.md step 3.
+available free from businessballs.com. It is reproduced here with the
+lecturer's authorisation, for use with his own advisees, and is served only to
+signed-in and approved accounts.
 
 Curriculum structure, 7 Pillars themes and the grade scale come from the UniMAP
 Academic Guide Book, MODUL RPS 2025 and the Panduan RPS (JHEP).
