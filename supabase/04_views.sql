@@ -127,7 +127,11 @@ left join (
         and r2.state in ('pass', 'exempted')
     )
   group by r.user_id
-) f on f.user_id = p.id;
+) f on f.user_id = p.id
+-- The RPS has a profile row like everyone else, but they are not their own
+-- advisee. Without this they appear in their own "My Students" list, flagged
+-- for having no meetings and no pillars.
+where not exists (select 1 from public.admins a where a.user_id = p.id);
 
 -- ---------------------------------------------------------------------
 -- THE LEADERBOARD

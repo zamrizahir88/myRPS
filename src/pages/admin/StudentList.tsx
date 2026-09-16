@@ -35,12 +35,17 @@ export default function StudentList() {
 
   useEffect(() => {
     void (async () => {
-      const { data, error: err } = await supabase
-        .from('student_summary').select('*')
-        .eq('approval_state', 'approved')
-        .order('full_name')
+      const [{ data, error: err }, { data: adminRows }] = await Promise.all([
+        supabase.from('student_summary').select('*')
+          .eq('approval_state', 'approved').order('full_name'),
+        // readable to admins only, by policy
+        supabase.from('admins').select('user_id'),
+      ])
       if (err) setError(err.message)
-      setRows((data as StudentSummary[]) ?? [])
+      // Belt and braces: the view excludes admins too, but filtering here as
+      // well means this is right immediately, without re-running any SQL.
+      const adminIds = new Set(((adminRows as { user_id: string }[]) ?? []).map((a) => a.user_id))
+      setRows(((data as StudentSummary[]) ?? []).filter((r) => !adminIds.has(r.user_id)))
       setLoading(false)
     })()
   }, [])
