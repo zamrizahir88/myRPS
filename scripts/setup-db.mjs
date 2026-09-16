@@ -197,6 +197,55 @@ async function verify(client) {
   return { failures, warnings }
 }
 
+/**
+ * The three ways this string is usually wrong. Each one otherwise surfaces as
+ * an unhelpful "password authentication failed" or "getaddrinfo ENOTFOUND".
+ */
+function diagnoseConnectionString(url) {
+  if (/\[?YOUR-PASSWORD\]?/i.test(url)) {
+    return `The placeholder is still in the string.
+
+Replace [YOUR-PASSWORD] — square brackets and all — with your actual database
+password, the one you saved when you created the Supabase project.`
+  }
+
+  if (/:6543\//.test(url)) {
+    return `That is the transaction pooler (port 6543). It cannot run these
+migrations. Use the Session pooler string instead — same page, port 5432.`
+  }
+
+  // Everything between "//" and the LAST "@" is user:password. An unencoded
+  // special character in the password lands outside that and breaks parsing.
+  const afterScheme = url.replace(/^postgres(?:ql)?:\/\//, '')
+  const lastAt = afterScheme.lastIndexOf('@')
+  const userinfo = lastAt === -1 ? '' : afterScheme.slice(0, lastAt)
+  const offenders = [...new Set((userinfo.match(/[@/?#[\] ]/g) ?? []))]
+
+  if (lastAt === -1) {
+    return 'That does not look like a connection string — there is no @ before the host.'
+  }
+
+  if (offenders.length) {
+    const table = { '@': '%40', '/': '%2F', '?': '%3F', '#': '%23', '[': '%5B', ']': '%5D', ' ': '%20' }
+    return `Your password contains ${offenders.map((ch) => `"${ch}"`).join(', ')}, which must be
+percent-encoded or the address cannot be read:
+
+${offenders.map((ch) => `      ${ch}  ->  ${table[ch]}`).join('\n')}
+
+Easiest fix: Supabase → Project Settings → Database → Reset database password,
+and choose one with only letters and numbers. Then copy the string again.`
+  }
+
+  try {
+    new URL(url)
+  } catch {
+    return `That connection string cannot be parsed. Copy it again from
+Supabase → Connect → Session pooler, and replace only [YOUR-PASSWORD].`
+  }
+
+  return null
+}
+
 async function main() {
   loadDotEnv()
   const url = process.env.DATABASE_URL || (await askForUrl())
@@ -204,9 +253,9 @@ async function main() {
     console.error(c.red('No connection string given.'))
     process.exit(1)
   }
-  if (/:6543\//.test(url)) {
-    console.error(c.red('\nThat is the transaction pooler (port 6543). It cannot run these'))
-    console.error(c.red('migrations. Use the Session pooler string instead (port 5432).'))
+  const problem = diagnoseConnectionString(url)
+  if (problem) {
+    console.error(`\n${c.red(problem)}`)
     process.exit(1)
   }
 
