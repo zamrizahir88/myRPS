@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { RPS_NAME, RPS_WHATSAPP, supabase } from '../lib/supabase'
+import { RPS_NAME, supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { useAcademic } from '../hooks/useAcademic'
@@ -25,6 +25,9 @@ export default function Dashboard() {
   // If this account is the configured RPS address but has no admin rights,
   // say so plainly instead of silently showing a student dashboard.
   const [shouldBeAdmin, setShouldBeAdmin] = useState(false)
+  // Read after sign-in rather than baked into the bundle, so the number is
+  // not on a public page.
+  const [whatsapp, setWhatsapp] = useState('')
 
   useEffect(() => {
     if (!profile?.id) return
@@ -41,9 +44,13 @@ export default function Dashboard() {
       setHasTest((ps.count ?? 0) > 0)
       setAnnouncements((ann.data as Announcement[]) ?? [])
 
-      const { data: setting } = await supabase
-        .from('app_settings').select('value').eq('key', 'bootstrap_admin_email').maybeSingle()
-      const configured = (setting?.value ?? '').trim().toLowerCase()
+      const { data: settings } = await supabase
+        .from('app_settings').select('key, value')
+        .in('key', ['bootstrap_admin_email', 'rps_whatsapp'])
+      const byKey = new Map(((settings as { key: string; value: string | null }[]) ?? [])
+        .map((row) => [row.key, row.value ?? '']))
+      setWhatsapp((byKey.get('rps_whatsapp') ?? '').replace(/\D/g, ''))
+      const configured = (byKey.get('bootstrap_admin_email') ?? '').trim().toLowerCase()
       const mine = (profile.email_official ?? '').trim().toLowerCase()
       setShouldBeAdmin(!!configured && configured === mine)
     })()
@@ -76,9 +83,9 @@ export default function Dashboard() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">{f(t.dash.welcome, { name: firstName })}</h1>
-        {RPS_WHATSAPP && (
+        {whatsapp && (
           <a
-            href={`https://wa.me/${RPS_WHATSAPP}?text=${whatsappText}`}
+            href={`https://wa.me/${whatsapp}?text=${whatsappText}`}
             target="_blank" rel="noreferrer"
             className="btn-primary bg-[#1baf7a] hover:bg-[#199e70]"
             title={t.dash.whatsappHint}

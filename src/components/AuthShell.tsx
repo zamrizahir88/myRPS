@@ -18,12 +18,18 @@ export default function AuthShell({ title, children }: { title: string; children
 
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm">
-          <div className="mb-3 flex items-center justify-end gap-1.5">
-            <button onClick={toggleTheme} className="btn-ghost px-2.5 py-1.5 text-xs">
-              {theme === 'dark' ? '☀' : '☾'}
+          {/* Labelled, not two mystery glyphs: a student who reads better in
+              BM has to be able to find the switch. */}
+          <div className="mb-3 flex items-center justify-end gap-2">
+            <button onClick={toggle} className="btn-ghost px-3 py-1.5 text-xs font-bold">
+              {t.nav.language === 'BM' ? '🇲🇾 Bahasa Melayu' : '🇬🇧 English'}
             </button>
-            <button onClick={toggle} className="btn-ghost px-2.5 py-1.5 text-xs font-bold">
-              {t.nav.language}
+            <button
+              onClick={toggleTheme}
+              className="btn-ghost px-3 py-1.5 text-xs font-semibold"
+              aria-label={theme === 'dark' ? t.nav.themeLight : t.nav.themeDark}
+            >
+              {theme === 'dark' ? '☀' : '☾'}
             </button>
           </div>
 

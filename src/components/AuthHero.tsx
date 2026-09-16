@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useI18n } from '../i18n'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { Logo } from './Brand'
 
 /** 22px stroke icons, sized for the feature list. */
@@ -22,7 +24,19 @@ const IconFeed = () => <svg {...ico}><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9
  */
 export default function AuthHero() {
   const { t, locale } = useI18n()
+  const { canInstall, showIosHint, install } = useInstallPrompt()
   const ms = locale === 'ms'
+
+  // Three sample threads, cycled slowly. Static, the panel reads as a
+  // screenshot; moving, it reads as a place where things happen.
+  const samples = ms ? SAMPLES_MS : SAMPLES_EN
+  const [sample, setSample] = useState(0)
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    const id = setInterval(() => setSample((i) => (i + 1) % samples.length), 6000)
+    return () => clearInterval(id)
+  }, [samples.length])
+  const shown = samples[sample % samples.length]
 
   const features = [
     { icon: <IconCredits />,  title: ms ? '140 kredit, dipantau' : 'All 140 credits, tracked',
@@ -101,62 +115,93 @@ export default function AuthHero() {
           </p>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur">
-            <div className="flex gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-bold text-[#4A3400]">
-                AZ
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-sm font-bold text-white">Aina Zulaikha</span>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80">
-                    🤝 {ms ? 'Perlu bantuan' : 'Needs help'}
-                  </span>
-                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
-                    #NMK21103
-                  </span>
-                </div>
-                <p className="mt-1 text-sm leading-relaxed text-white/90">
-                  {ms
-                    ? 'Siapa ambil Electromagnetic Theory semester ni? Chapter 3 memang pening 😩'
-                    : 'Anyone else taking Electromagnetic Theory? Chapter 3 is melting my brain 😩'}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-white/80">
-                  <span className="rounded-full bg-gold/20 px-2 py-1">👏 4</span>
-                  <span className="rounded-full bg-white/10 px-2 py-1">🔥 6</span>
-                  <span className="rounded-full bg-white/10 px-2 py-1">💪 2</span>
+            <div key={sample} className="animate-fade-up">
+              <div className="flex gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-bold text-[#4A3400]">
+                  {shown.initials}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-sm font-bold text-white">{shown.author}</span>
+                    {shown.tag && (
+                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/80">
+                        {shown.tag}
+                      </span>
+                    )}
+                    {shown.code && (
+                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
+                        #{shown.code}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm leading-relaxed text-white/90">{shown.body}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold text-white/80">
+                    {shown.reactions.map((r) => (
+                      <span key={r} className="rounded-full bg-white/10 px-2 py-1">{r}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-3 space-y-2.5 border-t border-white/10 pt-3">
-              <div className="flex gap-2.5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold text-white">
-                  HF
-                </span>
-                <p className="text-xs leading-relaxed text-white/75">
-                  <span className="font-bold text-white">Haziq Firdaus</span>{' '}
-                  {ms
-                    ? 'Aku dah lepas semester lepas. Jom study group Sabtu ni?'
-                    : 'Passed it last semester — study group on Saturday?'}
-                </p>
+              <div className="mt-3 space-y-2.5 border-t border-white/10 pt-3">
+                {shown.replies.map((reply) => (
+                  <div key={reply.author} className="flex gap-2.5">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white ${
+                        reply.rps ? 'bg-navy-500' : 'bg-white/15'
+                      }`}
+                    >
+                      {reply.initials}
+                    </span>
+                    <p className="text-xs leading-relaxed text-white/75">
+                      <span className="font-bold text-white">{reply.author}</span>
+                      {reply.rps && (
+                        <span className="ml-1.5 rounded-full bg-gold px-1.5 py-0.5 text-[9px] font-bold text-[#4A3400]">
+                          RPS
+                        </span>
+                      )}{' '}
+                      {reply.body}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <div className="flex gap-2.5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy-500 text-[11px] font-bold text-white">
-                  MZ
-                </span>
-                <p className="text-xs leading-relaxed text-white/75">
-                  <span className="font-bold text-white">Dr. Zamri</span>
-                  <span className="ml-1.5 rounded-full bg-gold px-1.5 py-0.5 text-[9px] font-bold text-[#4A3400]">
-                    RPS
-                  </span>{' '}
-                  {ms
-                    ? 'Bagus. Saya boleh tempah bilik perbincangan — jumpa saya lepas kelas.'
-                    : 'Good idea. I can book a discussion room — see me after class.'}
-                </p>
+
+              <div className="mt-3 flex justify-center gap-1.5">
+                {samples.map((_, i) => (
+                  <span
+                    key={i}
+                    className="h-1 rounded-full transition-all"
+                    style={{
+                      width: i === sample % samples.length ? 18 : 6,
+                      background: i === sample % samples.length ? '#FFC627' : 'rgba(255,255,255,.25)',
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>
         </div>
+
+        {(canInstall || showIosHint) && (
+          <div className="mt-7 rounded-2xl border border-gold/30 bg-gold/10 p-3.5">
+            {canInstall ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-white">{t.auth.install}</span>
+                  <span className="block text-xs text-white/70">{t.auth.installHint}</span>
+                </span>
+                <button onClick={() => void install()} className="btn-accent shrink-0 px-4 py-2 text-xs">
+                  {t.auth.install}
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs leading-relaxed text-white/80">
+                <span className="font-bold text-white">{t.auth.installHint}.</span>{' '}
+                {t.auth.iosInstall}
+              </p>
+            )}
+          </div>
+        )}
 
         <ul className="mt-7 hidden flex-wrap gap-1.5 xl:flex">
           {t.app.pillarsShort.map((p, i) => (
@@ -172,3 +217,68 @@ export default function AuthHero() {
     </aside>
   )
 }
+
+
+interface Sample {
+  initials: string; author: string; tag?: string; code?: string
+  body: string; reactions: string[]
+  replies: { initials: string; author: string; body: string; rps?: boolean }[]
+}
+
+const SAMPLES_MS: Sample[] = [
+  {
+    initials: 'AZ', author: 'Aina Zulaikha', tag: '🤝 Perlu bantuan', code: 'NMK21103',
+    body: 'Siapa ambil Electromagnetic Theory semester ni? Chapter 3 memang pening 😩',
+    reactions: ['👏 4', '🔥 6', '💪 2'],
+    replies: [
+      { initials: 'HF', author: 'Haziq Firdaus', body: 'Aku dah lepas semester lepas. Jom study group Sabtu ni?' },
+      { initials: 'MZ', author: 'Dr. Zamri', rps: true, body: 'Bagus. Saya boleh tempah bilik perbincangan — jumpa saya lepas kelas.' },
+    ],
+  },
+  {
+    initials: 'NS', author: 'Nurul Syafiqah', tag: '⭐ 7 Pillars',
+    body: 'Baru habis Program Jiwa Murni di Kangar. Pillar 3 ✅ — tinggal dua lagi!',
+    reactions: ['👏 9', '🔥 3'],
+    replies: [
+      { initials: 'AK', author: 'Amir Khairul', body: 'Power! Aku pun nak join batch depan.' },
+      { initials: 'MZ', author: 'Dr. Zamri', rps: true, body: 'Syabas. Saya dah sahkan pillar anda.' },
+    ],
+  },
+  {
+    initials: 'MZ', author: 'Dr. Zamri', tag: '📣 Pengumuman',
+    body: 'Pendaftaran kursus Semester 2 bermula minggu depan. Kemas kini rekod anda dulu supaya kita boleh semak bersama.',
+    reactions: ['👏 12', '💪 5'],
+    replies: [
+      { initials: 'AZ', author: 'Aina Zulaikha', body: 'Noted Dr. Saya dah masukkan semua kursus semester lepas.' },
+    ],
+  },
+]
+
+const SAMPLES_EN: Sample[] = [
+  {
+    initials: 'AZ', author: 'Aina Zulaikha', tag: '🤝 Needs help', code: 'NMK21103',
+    body: 'Anyone else taking Electromagnetic Theory? Chapter 3 is melting my brain 😩',
+    reactions: ['👏 4', '🔥 6', '💪 2'],
+    replies: [
+      { initials: 'HF', author: 'Haziq Firdaus', body: 'Passed it last semester — study group on Saturday?' },
+      { initials: 'MZ', author: 'Dr. Zamri', rps: true, body: 'Good idea. I can book a discussion room — see me after class.' },
+    ],
+  },
+  {
+    initials: 'NS', author: 'Nurul Syafiqah', tag: '⭐ 7 Pillars',
+    body: 'Just finished the Jiwa Murni programme in Kangar. Pillar 3 done ✅ — two to go!',
+    reactions: ['👏 9', '🔥 3'],
+    replies: [
+      { initials: 'AK', author: 'Amir Khairul', body: 'Nice! I am joining the next batch.' },
+      { initials: 'MZ', author: 'Dr. Zamri', rps: true, body: 'Well done. I have verified your pillar.' },
+    ],
+  },
+  {
+    initials: 'MZ', author: 'Dr. Zamri', tag: '📣 Announcement',
+    body: 'Semester 2 course registration opens next week. Update your records first so we can go through them together.',
+    reactions: ['👏 12', '💪 5'],
+    replies: [
+      { initials: 'AZ', author: 'Aina Zulaikha', body: 'Noted Dr. I have entered all of last semester already.' },
+    ],
+  },
+]

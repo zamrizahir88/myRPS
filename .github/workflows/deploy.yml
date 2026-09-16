@@ -35,7 +35,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ALLOWED_DOMAIN: ${{ vars.VITE_ALLOWED_DOMAIN }}
-          VITE_RPS_WHATSAPP: ${{ vars.VITE_RPS_WHATSAPP }}
+          VITE_RPS_EMAIL: ${{ vars.VITE_RPS_EMAIL }}
           VITE_RPS_NAME: ${{ vars.VITE_RPS_NAME }}
 
       - uses: actions/upload-pages-artifact@v3

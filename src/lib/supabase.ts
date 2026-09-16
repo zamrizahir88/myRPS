@@ -72,5 +72,13 @@ export const supabase = createClient<Database>(url, anonKey, {
 export const ALLOWED_DOMAIN =
   import.meta.env.VITE_ALLOWED_DOMAIN ?? 'studentmail.unimap.edu.my'
 
-export const RPS_WHATSAPP = import.meta.env.VITE_RPS_WHATSAPP ?? ''
+/**
+ * The WhatsApp number is deliberately NOT here. This bundle is public, so
+ * anything in it sits on an open web page. The number now lives in
+ * app_settings and is read after sign-in, where only approved students see it.
+ *
+ * The staff email is already public — it is in the university directory — so
+ * it can appear on the signed-out page as a route for someone locked out.
+ */
+export const RPS_EMAIL = import.meta.env.VITE_RPS_EMAIL ?? ''
 export const RPS_NAME = import.meta.env.VITE_RPS_NAME ?? 'RPS'
