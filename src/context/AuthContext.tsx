@@ -14,6 +14,8 @@ interface AuthValue {
   setPreviewAsStudent: (on: boolean) => void
   /** What the interface should show: false while an admin is previewing. */
   showAdminUi: boolean
+  /** Signed URL for the signed-in user's own photo, if they have one. */
+  avatarUrl: string | null
   loading: boolean
   refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [previewAsStudent, setPreview] = useState(() => {
     try {
       return localStorage.getItem(PREVIEW_KEY) === '1'
@@ -57,8 +60,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // not readable by students.
       supabase.rpc('is_admin'),
     ])
-    setProfile((prof as Profile) ?? null)
+    const loaded = (prof as Profile) ?? null
+    setProfile(loaded)
     setIsAdmin(admin === true)
+
+    // The bucket is private, so the photo needs a signed link.
+    if (loaded?.avatar_path) {
+      const { data: signed } = await supabase.storage
+        .from('avatars').createSignedUrl(loaded.avatar_path, 3600)
+      setAvatarUrl(signed?.signedUrl ?? null)
+    } else {
+      setAvatarUrl(null)
+    }
   }, [])
 
   useEffect(() => {
@@ -89,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       profile,
       isAdmin,
+      avatarUrl,
       previewAsStudent,
       setPreviewAsStudent,
       showAdminUi: isAdmin && !previewAsStudent,
@@ -98,9 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.auth.signOut()
         setProfile(null)
         setIsAdmin(false)
+        setAvatarUrl(null)
       },
     }),
-    [session, profile, isAdmin, previewAsStudent, setPreviewAsStudent, loading, loadProfile],
+    [session, profile, isAdmin, avatarUrl, previewAsStudent, setPreviewAsStudent, loading, loadProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

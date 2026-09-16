@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { Alert, Avatar, Spinner } from '../components/ui'
+import { useAvatarUrls } from '../hooks/useAvatarUrls'
 import Greeting from '../components/Greeting'
 import type { LeaderboardRow, Subject } from '../lib/types'
 
@@ -30,12 +31,13 @@ interface Reaction { post_id: string; user_id: string; emoji: Emoji }
 
 export default function Feed() {
   const { t, locale } = useI18n()
-  const { profile, isAdmin } = useAuth()
+  const { profile, isAdmin, avatarUrl } = useAuth()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [comments, setComments] = useState<Comment[]>([])
   const [reactions, setReactions] = useState<Reaction[]>([])
   const [names, setNames] = useState<Map<string, string>>(new Map())
+  const [avatarPaths, setAvatarPaths] = useState<Map<string, string>>(new Map())
   const [board, setBoard] = useState<LeaderboardRow[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,15 +58,18 @@ export default function Feed() {
       supabase.from('post_comments').select('*').is('deleted_at', null)
         .order('created_at', { ascending: true }),
       supabase.from('post_reactions').select('post_id, user_id, emoji'),
-      supabase.from('member_names').select('user_id, full_name'),
+      supabase.from('member_names').select('user_id, full_name, avatar_path'),
       supabase.from('leaderboard').select('*'),
       supabase.from('curriculum_subjects').select('*').eq('is_active', true).order('code'),
     ])
     setPosts((p.data as Post[]) ?? [])
     setComments((c.data as Comment[]) ?? [])
     setReactions((r.data as Reaction[]) ?? [])
-    setNames(new Map(((n.data as { user_id: string; full_name: string | null }[]) ?? [])
-      .map((row) => [row.user_id, row.full_name ?? '—'])))
+    const members = (n.data as { user_id: string; full_name: string | null; avatar_path: string | null }[]) ?? []
+    setNames(new Map(members.map((row) => [row.user_id, row.full_name ?? '—'])))
+    setAvatarPaths(new Map(
+      members.filter((row) => row.avatar_path).map((row) => [row.user_id, row.avatar_path as string]),
+    ))
     setBoard(((lb.data as LeaderboardRow[]) ?? []).sort((a, b) => b.points - a.points))
     // one entry per code: the same course exists in several curriculum versions
     const seen = new Set<string>()
@@ -88,6 +93,15 @@ export default function Feed() {
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
   }, [load])
+
+  const signedAvatars = useAvatarUrls([...avatarPaths.values()])
+  const avatarFor = useCallback(
+    (userId: string) => {
+      const path = avatarPaths.get(userId)
+      return path ? signedAvatars.get(path) ?? null : null
+    },
+    [avatarPaths, signedAvatars],
+  )
 
   const myReaction = useMemo(() => {
     const map = new Map<string, Emoji>()
@@ -179,7 +193,7 @@ export default function Feed() {
           {/* composer */}
           <div className="card">
             <div className="flex gap-3">
-              <Avatar name={profile?.full_name ?? null} size={40} />
+              <Avatar name={profile?.full_name ?? null} url={avatarUrl} size={40} />
               <div className="min-w-0 flex-1">
                 <textarea
                   className="input resize-none" rows={3} maxLength={2000}
@@ -265,7 +279,7 @@ export default function Feed() {
                 }`}
               >
                 <header className="flex items-start gap-3">
-                  <Avatar name={names.get(post.user_id) ?? null} size={40} />
+                  <Avatar name={names.get(post.user_id) ?? null} url={avatarFor(post.user_id)} size={40} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="text-sm font-bold">{names.get(post.user_id) ?? '—'}</span>
@@ -327,7 +341,7 @@ export default function Feed() {
                   <div className="mt-3 space-y-3 border-t pt-3" style={{ borderColor: 'var(--border)' }}>
                     {thread.map((c) => (
                       <div key={c.id} className="flex gap-2">
-                        <Avatar name={names.get(c.user_id) ?? null} size={28} />
+                        <Avatar name={names.get(c.user_id) ?? null} url={avatarFor(c.user_id)} size={28} />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-baseline gap-2">
                             <span className="text-xs font-bold">{names.get(c.user_id) ?? '—'}</span>
@@ -383,7 +397,7 @@ export default function Feed() {
                   <span className="tnum w-5 shrink-0 text-xs font-bold" style={{ color: 'var(--text-3)' }}>
                     {i + 1}
                   </span>
-                  <Avatar name={r.full_name} size={26} />
+                  <Avatar name={r.full_name} url={avatarFor(r.user_id)} size={26} />
                   <span className="min-w-0 flex-1 truncate text-sm">{r.full_name ?? '—'}</span>
                   {r.badge_pillars_master && <span title={t.community.pillarsMaster}>★</span>}
                   {r.badge_improving && <span title={t.community.improving}>▲</span>}

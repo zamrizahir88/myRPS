@@ -9,12 +9,12 @@ import { Avatar } from './ui'
  */
 export default function Greeting({ subtitle }: { subtitle?: string }) {
   const { t, locale } = useI18n()
-  const { profile, showAdminUi } = useAuth()
+  const { profile, showAdminUi, avatarUrl } = useAuth()
   const name = profile?.full_name?.trim()
 
   return (
     <div className="flex items-center gap-3 sm:gap-4">
-      <Avatar name={name ?? null} size={52} />
+      <Avatar name={name ?? null} url={avatarUrl} size={52} />
       <div className="min-w-0">
         <h1 className="font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
           {locale === 'ms' ? 'Helo' : 'Hello'},{' '}

@@ -22,7 +22,7 @@ interface Item { to: string; label: string; icon: JSX.Element; end?: boolean }
 
 export default function Layout() {
   const { t, toggle } = useI18n()
-  const { profile, isAdmin, showAdminUi, previewAsStudent, setPreviewAsStudent, signOut } = useAuth()
+  const { profile, isAdmin, showAdminUi, previewAsStudent, setPreviewAsStudent, signOut, avatarUrl } = useAuth()
   const { theme, toggle: toggleTheme } = useTheme()
 
   const items: Item[] = showAdminUi
@@ -56,8 +56,8 @@ export default function Layout() {
                 {showAdminUi ? (
                   <span className="ml-2 chip bg-navy-700 text-white">{t.nav.roleRps}</span>
                 ) : null}
-                <p className="truncate text-xs font-medium" style={{ color: 'var(--text-2)' }}>
-                  {profile?.full_name ?? t.app.tagline}
+                <p className="truncate text-[11px]" style={{ color: 'var(--text-3)' }}>
+                  {t.app.tagline}
                 </p>
               </div>
             </div>
@@ -72,7 +72,7 @@ export default function Layout() {
               <button onClick={signOut} className="btn-ghost hidden px-3 py-2 text-xs sm:inline-flex">
                 {t.nav.signOut}
               </button>
-              <Avatar name={profile?.full_name ?? null} size={32} />
+              <Avatar name={profile?.full_name ?? null} url={avatarUrl} size={32} />
             </div>
           </div>
 

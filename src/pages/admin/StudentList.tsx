@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useI18n } from '../../i18n'
-import { Alert, Spinner } from '../../components/ui'
+import { Alert, Avatar, Spinner } from '../../components/ui'
+import { useAvatarUrls } from '../../hooks/useAvatarUrls'
+
 import type { StudentSummary } from '../../lib/types'
 
 const EIGHT_WEEKS_MS = 56 * 24 * 60 * 60 * 1000
@@ -32,18 +34,28 @@ export default function StudentList() {
   const [query, setQuery] = useState('')
   const [onlyFlagged, setOnlyFlagged] = useState(true)
   const [showTestAccounts, setShowTestAccounts] = useState(false)
+  const [avatarPaths, setAvatarPaths] = useState<Map<string, string>>(new Map())
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     void (async () => {
-      const { data, error: err } = await supabase
-        .from('student_summary').select('*')
-        .eq('approval_state', 'approved').order('full_name')
+      const [{ data, error: err }, { data: members }] = await Promise.all([
+        supabase.from('student_summary').select('*')
+          .eq('approval_state', 'approved').order('full_name'),
+        supabase.from('member_names').select('user_id, avatar_path'),
+      ])
       if (err) setError(err.message)
       setRows((data as StudentSummary[]) ?? [])
+      setAvatarPaths(new Map(
+        ((members as { user_id: string; avatar_path: string | null }[]) ?? [])
+          .filter((m) => m.avatar_path)
+          .map((m) => [m.user_id, m.avatar_path as string]),
+      ))
       setLoading(false)
     })()
   }, [])
+
+  const signedAvatars = useAvatarUrls([...avatarPaths.values()])
 
   const decorated = useMemo(
     () => rows.map((r) => ({ row: r, flags: flagsFor(r, t) })),
@@ -136,7 +148,16 @@ export default function StudentList() {
                 {filtered.map(({ row, flags }) => (
                   <tr key={row.user_id} className="border-b border-[color:var(--border)] last:border-0">
                     <td className="px-2 py-2 font-medium">
-                      {row.full_name ?? t.common.none}
+                      <span className="inline-flex items-center gap-2">
+                        <Avatar
+                          name={row.full_name}
+                          url={avatarPaths.get(row.user_id)
+                            ? signedAvatars.get(avatarPaths.get(row.user_id)!) ?? null
+                            : null}
+                          size={26}
+                        />
+                        {row.full_name ?? t.common.none}
+                      </span>
                       {(row.is_staff || row.is_demo) && (
                         <span className="ml-2 chip bg-gold-50 text-gold-700">{t.admin.testAccount}</span>
                       )}

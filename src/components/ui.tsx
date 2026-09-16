@@ -106,13 +106,24 @@ export function Modal({
   )
 }
 
-export function Avatar({ name, url, size = 36 }: { name: string | null; url?: string | null; size?: number }) {
-  const initials = (name ?? '?')
+/** Honorifics and name particles are not initials. */
+const NOT_A_NAME = new Set([
+  'ts', 'dr', 'prof', 'ir', 'hj', 'hjh', 'haji', 'hajjah', 'dato', 'datuk',
+  'datin', 'tan', 'sri', 'en', 'pn', 'cik', 'mr', 'mrs', 'ms',
+  'bin', 'binti', 'bt', 'bte', 'anak', 'a/p', 'a/l', 'al', 'ap',
+])
+
+export function initialsOf(name: string | null): string {
+  if (!name) return '?'
+  const parts = name
     .split(/\s+/)
-    .filter((w) => w.length > 1)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join('')
+    .map((w) => w.replace(/[.,]/g, '').trim())
+    .filter((w) => w.length > 0 && !NOT_A_NAME.has(w.toLowerCase()))
+  const picked = parts.slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '')
+  return picked.join('') || name.trim()[0]?.toUpperCase() || '?'
+}
+
+export function Avatar({ name, url, size = 36 }: { name: string | null; url?: string | null; size?: number }) {
   if (url) {
     return (
       <img
@@ -120,7 +131,7 @@ export function Avatar({ name, url, size = 36 }: { name: string | null; url?: st
         alt={name ?? ''}
         width={size}
         height={size}
-        className="rounded-full object-cover"
+        className="shrink-0 rounded-full object-cover"
         style={{ width: size, height: size }}
       />
     )
@@ -130,14 +141,12 @@ export function Avatar({ name, url, size = 36 }: { name: string | null; url?: st
       className="flex shrink-0 items-center justify-center rounded-full font-bold text-white"
       style={{
         width: size, height: size, fontSize: size * 0.38,
-        // solid colour first: a gradient alone leaves backgroundColor
-        // transparent, which breaks contrast checking and any fallback
         backgroundColor: '#1A2A6C',
         backgroundImage: 'linear-gradient(135deg, #2E5BBF, #1A2A6C)',
       }}
       aria-hidden
     >
-      {initials || '?'}
+      {initialsOf(name)}
     </div>
   )
 }
