@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 
 export function Spinner({ label }: { label?: string }) {
@@ -90,24 +90,37 @@ export function Modal({
   title: string
   children: ReactNode
 }) {
+  // Callers pass an inline arrow for onClose, so its identity changes on every
+  // render — including every keystroke in a field inside the sheet. Keeping it
+  // in a ref means the effect below runs when the sheet opens and closes, and
+  // at no other time. It used to depend on onClose: one keystroke tore the
+  // effect down, the cleanup called history.back(), and that popstate landed
+  // on the listener the re-run had just registered, closing the sheet. You
+  // typed one letter and the box vanished.
+  const closeRef = useRef(onClose)
+  useEffect(() => { closeRef.current = onClose })
+
   // Escape, and the Android back button, both close the sheet. Without the
   // history entry, back exits the app entirely — which is what it did.
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current() }
     window.addEventListener('keydown', onKey)
 
+    let closedByBack = false
     window.history.pushState({ myrpsModal: true }, '')
-    const onPop = () => onClose()
+    const onPop = () => { closedByBack = true; closeRef.current() }
     window.addEventListener('popstate', onPop)
 
     return () => {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('popstate', onPop)
-      // if the modal closed by any other route, drop the entry we added
-      if (window.history.state?.myrpsModal) window.history.back()
+      // Closed by save, cancel or ✕: drop the entry we added, so the next back
+      // press leaves the page as the student expects. Closed by back itself:
+      // the entry is already gone, and going back again would leave the page.
+      if (!closedByBack && window.history.state?.myrpsModal) window.history.back()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
   return (
