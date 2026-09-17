@@ -121,11 +121,16 @@ export default function StudentDetail() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile
           label={t.admin.credits}
-          value={`${academic.progress.earned}/${academic.progress.required}`}
-          sub={`${academic.progress.percent}%`}
+          value={`${academic.progress.totalEarned}/${academic.progress.required}`}
+          sub={`${academic.progress.taken} ${t.academic.creditsTaken.toLowerCase()} · ${academic.progress.exempted} ${t.academic.creditsExempted.toLowerCase()}`}
+        />
+        <StatTile
+          label={t.academic.creditsThisSem}
+          value={academic.currentTermCredits}
+          sub={academic.currentTerm ? termLabel(academic.currentTerm, locale) : t.common.none}
         />
         <StatTile
           label={t.admin.cgpa}
@@ -255,6 +260,34 @@ export default function StudentDetail() {
           </ul>
         )}
       </div>
+
+      {academic.exemptions.length > 0 && (
+        <div className="card">
+          <h3 className="section-title">{t.academic.exemptions}</h3>
+          <p className="mb-2 mt-1 text-xs" style={{ color: 'var(--text-3)' }}>
+            {t.academic.exemptionsHint}
+          </p>
+          <ul className="divide-y" style={{ borderColor: 'var(--border)' }}>
+            {academic.exemptions.map((r) => {
+              const subject = academic.subjectMap.get(r.subject_id)
+              return (
+                <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-1.5 text-sm">
+                  <span className="tnum font-semibold">{subject?.code}</span>
+                  <span className="min-w-0 flex-1 truncate" style={{ color: 'var(--text-2)' }}>
+                    {locale === 'ms' ? subject?.name_ms ?? subject?.name_en : subject?.name_en}
+                  </span>
+                  <span className="tnum text-xs" style={{ color: 'var(--text-3)' }}>
+                    {subject?.credit} {t.academic.creditsShort}
+                  </span>
+                  {r.exemption_note && (
+                    <span className="chip bg-[color:var(--surface-2)]">{r.exemption_note}</span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="card">
         <h3 className="section-title mb-3">{t.academic.title}</h3>

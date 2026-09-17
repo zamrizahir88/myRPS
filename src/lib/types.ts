@@ -100,6 +100,8 @@ export interface StudentRecord {
   grade: string | null
   semester_taken: string | null
   term_id: string | null
+  /** Set only on exemptions: where the credit came from. */
+  exemption_note: string | null
 }
 
 export interface GradeScale {
@@ -180,6 +182,11 @@ export interface StudentSummary {
   current_study_year: number | null
   credits_earned: number
   credits_required: number
+  /** Earned by sitting the subject, as opposed to exempted. */
+  credits_taken: number
+  credits_exempted: number
+  /** The load they are carrying in the semester they are in now. */
+  current_semester_credits: number
   cgpa: number | null
   pillars_done: number
   meetings_total: number

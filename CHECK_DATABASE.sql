@@ -71,7 +71,22 @@ with checks(step, item, ok) as (
     ('7. MIGRATE_VISIBLE_PROFILES', 'existing students switched on',
        not exists (select 1 from public.profiles p
                     where not p.share_profile
-                      and not exists (select 1 from public.admins a where a.user_id = p.id)))
+                      and not exists (select 1 from public.admins a where a.user_id = p.id))),
+
+    -- ---- MIGRATE_DEMO_STUDENT.sql -------------------------------------------
+    ('8. MIGRATE_DEMO_STUDENT', 'a demo address may register',
+       coalesce((select value from public.app_settings where key = 'demo_emails'), '') <> ''),
+
+    -- ---- MIGRATE_EXEMPTIONS.sql ---------------------------------------------
+    ('9. MIGRATE_EXEMPTIONS', 'exemptions sit outside the semesters',
+       not exists (select 1 from public.student_records
+                    where state = 'exempted' and term_id is not null)),
+    ('9. MIGRATE_EXEMPTIONS', 'one exemption per subject',
+       to_regclass('public.student_records_one_exemption') is not null),
+    ('9. MIGRATE_EXEMPTIONS', 'credits split into taken and exempted',
+       (select count(*) from information_schema.columns
+         where table_schema = 'public' and table_name = 'student_summary'
+           and column_name in ('credits_taken','credits_exempted','current_semester_credits')) = 3)
 )
 select step, item, case when ok then 'OK' else 'MISSING — re-run this file' end as result
 from checks

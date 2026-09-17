@@ -691,3 +691,104 @@ begin
   if n <> 1 then raise exception 'FAIL: the RPS cannot see the demo student''s record'; end if;
   raise notice 'PASS: the RPS sees what the demo student entered';
 end $$;
+
+\echo '--- exemptions live outside the semesters ---'
+reset role;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000e1';
+set role authenticated;
+do $$
+declare subj uuid; n int;
+begin
+  select id into subj from public.curriculum_subjects
+   where intake_year = '2026' and code <> (
+     select s.code from public.student_records r
+     join public.curriculum_subjects s on s.id = r.subject_id
+     where r.user_id = auth.uid() limit 1)
+   order by code limit 1;
+
+  insert into public.student_records (user_id, subject_id, state, exemption_note)
+  values (auth.uid(), subj, 'exempted', 'Diploma UniMAP 2023');
+
+  select count(*) into n from public.student_records
+   where user_id = auth.uid() and state = 'exempted' and term_id is null;
+  if n <> 1 then raise exception 'FAIL: an exemption could not be saved without a semester'; end if;
+  raise notice 'PASS: an exemption saves with no semester attached';
+
+  begin
+    insert into public.student_records (user_id, subject_id, state)
+    values (auth.uid(), subj, 'exempted');
+    raise exception 'FAIL: the same subject was exempted twice';
+  exception when unique_violation then
+    raise notice 'PASS: the same subject cannot be exempted twice';
+  end;
+
+  begin
+    insert into public.student_records (user_id, subject_id, state)
+    select auth.uid(), id, 'active' from public.curriculum_subjects
+     where intake_year = '2026' and id <> subj order by code limit 1;
+    raise exception 'FAIL: an ordinary record was accepted with no semester';
+  exception when check_violation then
+    raise notice 'PASS: only an exemption may sit outside a semester';
+  end;
+end $$;
+
+\echo '--- credits taken, exempted, and the load being carried now ---'
+do $$
+declare taken int; exempted int; earned int; load int; before_cgpa numeric; after_cgpa numeric;
+begin
+  select cgpa into before_cgpa from public.student_summary where user_id = auth.uid();
+
+  select credits_taken, credits_exempted, credits_earned, current_semester_credits
+    into taken, exempted, earned, load
+    from public.student_summary where user_id = auth.uid();
+
+  if exempted = 0 then raise exception 'FAIL: the exemption earned no credits'; end if;
+  if taken = 0 then raise exception 'FAIL: the passed subject earned no credits'; end if;
+  if earned <> taken + exempted then
+    raise exception 'FAIL: % taken + % exempted does not equal % earned', taken, exempted, earned;
+  end if;
+  raise notice 'PASS: credits taken plus credits exempted equal credits earned';
+
+  -- the passed subject sits in the student's only term, so it is their load
+  if load <> taken then
+    raise exception 'FAIL: current semester load is %, expected %', load, taken;
+  end if;
+  raise notice 'PASS: the load being carried this semester is counted separately';
+
+  select cgpa into after_cgpa from public.student_summary where user_id = auth.uid();
+  if after_cgpa is distinct from before_cgpa then
+    raise exception 'FAIL: an exemption moved the CGPA';
+  end if;
+  raise notice 'PASS: an exemption never touches the CGPA';
+end $$;
+
+\echo '--- a repeat costs hours but earns its credit once ---'
+do $$
+declare subj uuid; t2 uuid; earned_before int; earned_after int; load_after int; credit int;
+begin
+  select credits_earned into earned_before from public.student_summary where user_id = auth.uid();
+  select r.subject_id, s.credit into subj, credit
+    from public.student_records r
+    join public.curriculum_subjects s on s.id = r.subject_id
+   where r.user_id = auth.uid() and r.state = 'pass' limit 1;
+
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values (auth.uid(), '2026/2027', 2, 1) returning id into t2;
+
+  -- the same subject again, in the next semester: a legal repeat
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values (auth.uid(), subj, t2, 'pass', 'B');
+
+  select credits_earned, current_semester_credits into earned_after, load_after
+    from public.student_summary where user_id = auth.uid();
+
+  if earned_after <> earned_before then
+    raise exception 'FAIL: a repeat earned its credit twice (% -> %)', earned_before, earned_after;
+  end if;
+  raise notice 'PASS: a repeated subject earns its credit once';
+
+  if load_after <> credit then
+    raise exception 'FAIL: the repeat is not counted in this semester load, got %', load_after;
+  end if;
+  raise notice 'PASS: the repeat still counts toward the semester load';
+end $$;

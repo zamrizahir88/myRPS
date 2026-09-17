@@ -11,7 +11,9 @@ import EmptyState, { EmptyIcons } from '../components/EmptyState'
 import { useToast } from '../components/Toast'
 import type { RecordState, StudentRecord, StudentTerm, Subject } from '../lib/types'
 
-const STATES: RecordState[] = ['active', 'pass', 'fail', 'exempted', 'planned']
+// 'exempted' is deliberately absent: an exemption did not happen in a
+// semester, so it is recorded in its own section instead.
+const STATES: RecordState[] = ['active', 'pass', 'fail', 'planned']
 
 const STATE_STYLE: Record<RecordState, string> = {
   pass: 'tint-good',
@@ -34,6 +36,7 @@ export default function Academic() {
 
   const [termDraft, setTermDraft] = useState<TermDraft | null>(null)
   const [recordDraft, setRecordDraft] = useState<Partial<StudentRecord> | null>(null)
+  const [exemptionDraft, setExemptionDraft] = useState<{ subject_id: string; exemption_note: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const { show } = useToast()
@@ -76,7 +79,12 @@ export default function Academic() {
     })
     setBusy(false)
     if (err) {
-      setError(/duplicate|unique/i.test(err.message) ? t.academic.termExists : err.message)
+      // Name the constraint. Mapping every unique violation to one sentence is
+      // how a primary-key collision spent a week pretending to be a duplicate
+      // semester.
+      setError(/student_terms_user_id_session_semester_key/.test(err.message)
+        ? t.academic.termExists
+        : err.message)
       return
     }
     setTermDraft(null)
@@ -105,10 +113,37 @@ export default function Academic() {
       : await supabase.from('student_records').insert(payload)
     setBusy(false)
     if (err) {
-      setError(/duplicate|unique/i.test(err.message) ? t.academic.alreadyInTerm : err.message)
+      setError(/student_records_subject_per_term/.test(err.message)
+        ? t.academic.alreadyInTerm
+        : err.message)
       return
     }
     setRecordDraft(null)
+    show(t.common.saved)
+    await a.reload()
+  }
+
+  async function saveExemption() {
+    if (!exemptionDraft?.subject_id) return
+    setBusy(true)
+    setError(null)
+    const { error: err } = await supabase.from('student_records').insert({
+      user_id: profile!.id,
+      subject_id: exemptionDraft.subject_id,
+      // no term: this did not happen in a semester
+      term_id: null,
+      state: 'exempted',
+      grade: null,
+      exemption_note: exemptionDraft.exemption_note || null,
+    })
+    setBusy(false)
+    if (err) {
+      setError(/student_records_one_exemption/.test(err.message)
+        ? t.academic.exemptionExists
+        : err.message)
+      return
+    }
+    setExemptionDraft(null)
     show(t.common.saved)
     await a.reload()
   }
@@ -118,10 +153,16 @@ export default function Academic() {
     await a.reload()
   }
 
+  // Build the draft field by field. Spreading the latest term carried its id
+  // into the insert, so adding Semester 2 collided with Semester 1's primary
+  // key and came back as "you already have that semester" — about a semester
+  // the student did not have.
   const nextTermDefault = (): TermDraft => {
     const latest = a.terms[0]
     if (!latest) return { study_year: 1, semester: 1, session: sessionOptions()[0] }
-    if (latest.semester === 1) return { ...latest, semester: 2 }
+    if (latest.semester === 1) {
+      return { study_year: latest.study_year, semester: 2, session: latest.session }
+    }
     const [from, to] = latest.session.split('/').map(Number)
     return {
       study_year: Math.min(latest.study_year + 1, 8),
@@ -143,10 +184,13 @@ export default function Academic() {
 
       <div className="card">
         <ProgressBar
-          label={t.academic.creditsEarned}
+          label={t.academic.towardsGraduation}
           caption={`${a.progress.earned} / ${a.progress.required} · ${a.progress.percent}%`}
           value={a.progress.earned} max={a.progress.required} height={14}
         />
+        <p className="mt-2 text-xs" style={{ color: 'var(--text-3)' }}>
+          {t.academic.towardsGraduationHint}
+        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {a.progress.byCategory.map((c) => (
             <ProgressBar
@@ -158,18 +202,32 @@ export default function Academic() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile
           label={t.academic.cgpa}
           value={a.gpa.gpa?.toFixed(2) ?? t.common.none}
           sub={t.academic.cgpaHint}
           tone={a.gpa.gpa !== null && a.gpa.gpa < 2 ? 'critical' : 'default'}
         />
-        <StatTile label={t.academic.creditsEarned} value={a.progress.earned} sub={`${t.common.of} ${a.progress.required}`} />
         <StatTile
-          label={t.academic.currentTerm}
-          value={a.terms[0] ? `Y${a.terms[0].study_year} · S${a.terms[0].semester}` : t.common.none}
-          sub={a.terms[0]?.session}
+          label={t.academic.creditsThisSem}
+          value={a.currentTermCredits}
+          sub={a.currentTerm ? termLabel(a.currentTerm, locale) : t.academic.creditsThisSemHint}
+        />
+        <StatTile
+          label={t.academic.creditsTotal}
+          value={a.progress.totalEarned}
+          sub={`${t.common.of} ${a.progress.required} · ${t.academic.creditsTotalHint}`}
+        />
+        <StatTile
+          label={t.academic.creditsTaken}
+          value={a.progress.taken}
+          sub={t.academic.creditsTakenHint}
+        />
+        <StatTile
+          label={t.academic.creditsExempted}
+          value={a.progress.exempted}
+          sub={t.academic.creditsExemptedHint}
         />
       </div>
 
@@ -189,6 +247,53 @@ export default function Academic() {
           </div>
         </div>
       )}
+
+      {/* ---- exemptions: no semester, no grade ---- */}
+      <section className="card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-title">{t.academic.exemptions}</h2>
+          <button
+            onClick={() => setExemptionDraft({ subject_id: '', exemption_note: '' })}
+            className="btn-ghost px-3 py-1.5 text-xs"
+          >
+            + {t.academic.addExemption}
+          </button>
+        </div>
+        <p className="mb-3 mt-1 text-xs" style={{ color: 'var(--text-3)' }}>
+          {t.academic.exemptionsHint}
+        </p>
+        {a.exemptions.length === 0 ? (
+          <p className="py-2 text-sm" style={{ color: 'var(--text-3)' }}>{t.academic.noExemptions}</p>
+        ) : (
+          <ul className="divide-y" style={{ borderColor: 'var(--border)' }}>
+            {a.exemptions.map((r) => {
+              const s = a.subjectMap.get(r.subject_id)
+              return (
+                <li key={r.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2.5">
+                  <span className="tnum font-semibold">{s?.code}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm" style={{ color: 'var(--text-2)' }}>
+                    {locale === 'ms' ? s?.name_ms ?? s?.name_en : s?.name_en}
+                  </span>
+                  <span className="tnum text-xs" style={{ color: 'var(--text-3)' }}>
+                    {s?.credit} {t.academic.creditsShort}
+                  </span>
+                  {r.exemption_note && (
+                    <span className="chip bg-[color:var(--surface-2)]">{r.exemption_note}</span>
+                  )}
+                  <span className="chip tint-info">{t.academic.exempted}</span>
+                  <button
+                    onClick={() => void removeRecord(r.id)}
+                    className="text-xs"
+                    style={{ color: 'var(--status-critical)' }}
+                  >
+                    {t.academic.deleteRecord}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
 
       {a.terms.length === 0 && (
         <EmptyState
@@ -313,6 +418,49 @@ export default function Academic() {
             <div className="flex justify-end gap-2 pt-1">
               <button onClick={() => setTermDraft(null)} className="btn-ghost">{t.common.cancel}</button>
               <button onClick={() => void saveTerm()} disabled={busy} className="btn-primary">
+                {t.common.save}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ---- add an exemption ---- */}
+      <Modal
+        open={!!exemptionDraft}
+        onClose={() => setExemptionDraft(null)}
+        title={t.academic.addExemption}
+      >
+        {exemptionDraft && (
+          <div className="space-y-3">
+            <Field label={t.academic.subject}>
+              <select
+                className="input"
+                value={exemptionDraft.subject_id}
+                onChange={(e) => setExemptionDraft({ ...exemptionDraft, subject_id: e.target.value })}
+              >
+                <option value="">{t.common.notSet}</option>
+                {a.subjects.map((s: Subject) => (
+                  <option key={s.id} value={s.id}>
+                    {s.code} — {locale === 'ms' ? s.name_ms ?? s.name_en : s.name_en} ({s.credit})
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={t.academic.exemptionNote} hint={t.academic.exemptionNoteHint}>
+              <input
+                className="input"
+                value={exemptionDraft.exemption_note}
+                onChange={(e) => setExemptionDraft({ ...exemptionDraft, exemption_note: e.target.value })}
+              />
+            </Field>
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setExemptionDraft(null)} className="btn-ghost">{t.common.cancel}</button>
+              <button
+                onClick={() => void saveExemption()}
+                disabled={!exemptionDraft.subject_id || busy}
+                className="btn-primary"
+              >
                 {t.common.save}
               </button>
             </div>

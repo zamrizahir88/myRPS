@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { creditProgress, computeGpa } from '../lib/academic'
+import { creditProgress, computeGpa, registeredCredits, termKey } from '../lib/academic'
 import type { GradeScale, StudentRecord, StudentTerm, Subject, SubjectCategory } from '../lib/types'
 
 interface Options {
@@ -64,9 +64,28 @@ export function useAcademic({ userId, programmeCode, intakeYear }: Options) {
     [records, subjectMap, requirementMap],
   )
 
+  /** term id -> sortable key, so a repeat is ranked by when it happened. */
+  const termKeys = useMemo(
+    () => new Map(terms.map((t) => [t.id, termKey(t)])),
+    [terms],
+  )
+
   const gpa = useMemo(
-    () => computeGpa(records, subjectMap, gradeMap),
-    [records, subjectMap, gradeMap],
+    () => computeGpa(records, subjectMap, gradeMap, termKeys),
+    [records, subjectMap, gradeMap, termKeys],
+  )
+
+  /** The term the student is in now, and the load they are carrying in it. */
+  const currentTerm = terms[0]
+  const currentTermCredits = useMemo(
+    () => registeredCredits(records, subjectMap, currentTerm?.id),
+    [records, subjectMap, currentTerm?.id],
+  )
+
+  /** Exemptions belong to no semester, so they are kept out of the term list. */
+  const exemptions = useMemo(
+    () => records.filter((r) => r.state === 'exempted' && !r.term_id),
+    [records],
   )
 
   /** GPA for each term as it happened, oldest first, for the trend. */
@@ -96,6 +115,7 @@ export function useAcademic({ userId, programmeCode, intakeYear }: Options) {
 
   return {
     subjects, records, terms, grades, subjectMap, gradeMap, requirementMap,
-    progress, gpa, termGpas, loading, error, reload: load,
+    progress, gpa, termGpas, currentTerm, currentTermCredits, exemptions,
+    loading, error, reload: load,
   }
 }

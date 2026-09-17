@@ -5,23 +5,56 @@ export const CATEGORY_ORDER: SubjectCategory[] = [
 ]
 
 /**
- * One row per subject, keeping the highest attempt number. A repeated subject
- * must count once — SMQ11103 taken three times is still 3 credits, not 9.
+ * Ranks a record the way the database views do: the term it happened in, with
+ * a term-less row last. attempt_no breaks a tie, for rows written before terms
+ * existed. Ranking by attempt_no alone was wrong — nothing has set it since
+ * terms arrived, so every row is 1 and whichever row the database happened to
+ * return first won.
  */
-function latestAttempts(records: StudentRecord[]): StudentRecord[] {
-  const best = new Map<string, StudentRecord>()
+function rankOf(r: StudentRecord, termKeys?: Map<string, string>): string {
+  return (r.term_id && termKeys?.get(r.term_id)) || ''
+}
+
+export type EarnedSource = 'pass' | 'exempted'
+
+/**
+ * One entry per subject the student has cleared, and how they cleared it.
+ *
+ * A subject counts once however many times it was taken: SMQ11103 passed on
+ * the second attempt is 3 credits, not 6. And a pass is banked — a later
+ * attempt can change the grade that counts toward CGPA, but it can never take
+ * the credit back. An exam pass outranks an exemption: if they sat it, that is
+ * what happened.
+ */
+export function earnedSubjects(
+  records: StudentRecord[],
+  subjects: Map<string, Subject>,
+): { subject: Subject; source: EarnedSource }[] {
+  const source = new Map<string, EarnedSource>()
   for (const r of records) {
-    const current = best.get(r.subject_id)
-    if (!current || r.attempt_no > current.attempt_no) best.set(r.subject_id, r)
+    if (r.state === 'pass') source.set(r.subject_id, 'pass')
+    else if (r.state === 'exempted' && !source.has(r.subject_id)) source.set(r.subject_id, 'exempted')
   }
-  return [...best.values()]
+  const out: { subject: Subject; source: EarnedSource }[] = []
+  for (const [subjectId, src] of source) {
+    const subject = subjects.get(subjectId)
+    if (subject) out.push({ subject, source: src })
+  }
+  return out
 }
 
 export interface CreditProgress {
+  /** Toward graduation: capped per category, so a third elective cannot inflate it. */
   earned: number
   required: number
   percent: number
   byCategory: { category: SubjectCategory; earned: number; required: number }[]
+  /** Credits earned by sitting the subject and passing it. */
+  taken: number
+  /** Credits granted as exemptions — no grade, no GPA effect. */
+  exempted: number
+  /** taken + exempted, uncapped: what the student has actually earned. */
+  totalEarned: number
 }
 
 export function creditProgress(
@@ -30,12 +63,14 @@ export function creditProgress(
   requirements: Map<SubjectCategory, number>,
 ): CreditProgress {
   const earnedBy = new Map<SubjectCategory, number>()
+  let taken = 0
+  let exempted = 0
 
-  for (const r of latestAttempts(records)) {
-    if (r.state !== 'pass' && r.state !== 'exempted') continue
-    const s = subjects.get(r.subject_id)
-    if (!s || !s.counts_to_total) continue
-    earnedBy.set(s.category, (earnedBy.get(s.category) ?? 0) + s.credit)
+  for (const { subject, source } of earnedSubjects(records, subjects)) {
+    if (!subject.counts_to_total) continue
+    earnedBy.set(subject.category, (earnedBy.get(subject.category) ?? 0) + subject.credit)
+    if (source === 'pass') taken += subject.credit
+    else exempted += subject.credit
   }
 
   const byCategory = CATEGORY_ORDER
@@ -55,7 +90,30 @@ export function creditProgress(
     required,
     percent: required > 0 ? Math.round((earned / required) * 100) : 0,
     byCategory,
+    taken,
+    exempted,
+    totalEarned: taken + exempted,
   }
+}
+
+/**
+ * The load a student is carrying in one term: everything registered, repeats
+ * included. A repeat costs them the same hours whether or not the credit is
+ * new, which is the point of watching this number.
+ */
+export function registeredCredits(
+  records: StudentRecord[],
+  subjects: Map<string, Subject>,
+  termId: string | undefined,
+): number {
+  if (!termId) return 0
+  let total = 0
+  for (const r of records) {
+    if (r.term_id !== termId) continue
+    if (r.state !== 'active' && r.state !== 'pass' && r.state !== 'fail') continue
+    total += subjects.get(r.subject_id)?.credit ?? 0
+  }
+  return total
 }
 
 /**
@@ -68,17 +126,24 @@ export function computeGpa(
   records: StudentRecord[],
   subjects: Map<string, Subject>,
   grades: Map<string, GradeScale>,
-  semester?: string,
+  termKeys?: Map<string, string>,
 ): { gpa: number | null; credits: number } {
+  // The latest graded attempt of each subject, and only that one.
+  const latest = new Map<string, StudentRecord>()
+  for (const r of records) {
+    if (r.state !== 'pass' && r.state !== 'fail') continue
+    if (!r.grade) continue
+    const current = latest.get(r.subject_id)
+    if (!current) { latest.set(r.subject_id, r); continue }
+    const [a, b] = [rankOf(r, termKeys), rankOf(current, termKeys)]
+    if (a > b || (a === b && r.attempt_no > current.attempt_no)) latest.set(r.subject_id, r)
+  }
+
   let weighted = 0
   let credits = 0
-
-  for (const r of latestAttempts(records)) {
-    if (semester && r.semester_taken !== semester) continue
-    if (!r.grade) continue
-    if (r.state !== 'pass' && r.state !== 'fail') continue
+  for (const r of latest.values()) {
     const s = subjects.get(r.subject_id)
-    const g = grades.get(r.grade)
+    const g = r.grade ? grades.get(r.grade) : undefined
     if (!s || !g || !s.is_graded) continue
     weighted += g.points * s.credit
     credits += s.credit

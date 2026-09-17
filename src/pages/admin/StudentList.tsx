@@ -135,13 +135,14 @@ export default function StudentList() {
         <div className="card">
           <p className="mb-3 text-xs text-[color:var(--text-3)]">{t.admin.attentionHint}</p>
           <div className="-mx-2 overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[940px] text-sm">
               <thead>
                 <tr className="border-b border-[color:var(--border)] text-left text-xs text-[color:var(--text-3)]">
                   <th className="px-2 py-2 font-medium">{t.admin.name}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.matric}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.currentTerm}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.credits}</th>
+                  <th className="px-2 py-2 font-medium" title={t.admin.loadNowHint}>{t.admin.loadNow}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.cgpa}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.pillars}</th>
                   <th className="px-2 py-2 font-medium">{t.admin.meetings}</th>
@@ -174,12 +175,16 @@ export default function StudentList() {
                         ? `Y${row.current_study_year} · S${row.current_semester} · ${row.current_session}`
                         : t.common.none}
                     </td>
-                    <td className="tnum px-2 py-2">
+                    <td
+                      className="tnum px-2 py-2"
+                      title={`${row.credits_taken} ${t.academic.creditsTaken} · ${row.credits_exempted} ${t.academic.creditsExempted}`}
+                    >
                       {row.credits_earned}/{row.credits_required}
                       <span className="ml-1 text-xs text-[color:var(--text-3)]">
                         ({Math.round((row.credits_earned / Math.max(row.credits_required, 1)) * 100)}%)
                       </span>
                     </td>
+                    <td className="tnum px-2 py-2">{row.current_semester_credits}</td>
                     <td className={`tnum px-2 py-2 ${row.cgpa !== null && row.cgpa < 2 ? 'font-semibold text-status-critical' : ''}`}>
                       {row.cgpa?.toFixed(2) ?? t.common.none}
                     </td>

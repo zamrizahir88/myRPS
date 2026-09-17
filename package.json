@@ -14,7 +14,8 @@
     "check:sql": "node scripts/check-editor-sql.mjs",
     "check:css": "node scripts/check-css-tokens.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "check:modal": "node scripts/check-modal.mjs"
+    "check:modal": "node scripts/check-modal.mjs",
+    "check:credits": "node scripts/check-credits.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
