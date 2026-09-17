@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
+import { Link } from 'react-router-dom'
 import { Alert, Avatar } from '../components/ui'
+import RpsCard from '../components/RpsCard'
 import { SkeletonList } from '../components/Skeleton'
 import EmptyState, { EmptyIcons } from '../components/EmptyState'
 import { usePullToRefresh } from '../hooks/usePullToRefresh'
@@ -310,10 +312,14 @@ export default function Feed() {
                 }`}
               >
                 <header className="flex items-start gap-3">
-                  <Avatar name={names.get(post.user_id) ?? null} url={avatarFor(post.user_id)} size={40} />
+                  <Link to={`/u/${post.user_id}`} aria-label={names.get(post.user_id) ?? ''}>
+                    <Avatar name={names.get(post.user_id) ?? null} url={avatarFor(post.user_id)} size={40} />
+                  </Link>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-sm font-bold">{names.get(post.user_id) ?? '—'}</span>
+                      <Link to={`/u/${post.user_id}`} className="text-sm font-bold hover:underline">
+                        {names.get(post.user_id) ?? '—'}
+                      </Link>
                       {post.kind === 'announcement' && (
                         <span className="chip tint-warn">📣 {t.feed.announcement}</span>
                       )}
@@ -415,6 +421,8 @@ export default function Feed() {
 
         {/* leaderboard alongside the feed rather than on its own tab */}
         <aside className="space-y-4">
+          {!isAdmin && <RpsCard compact />}
+
           <div className="card">
             <h2 className="section-title mb-3">{t.community.leaderboard}</h2>
             <ol className="space-y-1">

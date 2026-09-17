@@ -8,6 +8,7 @@ import Consent from './pages/Consent'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import ProfilePage from './pages/Profile'
+import PublicProfilePage from './pages/PublicProfile'
 import Academic from './pages/Academic'
 import Psychometric from './pages/Psychometric'
 import Pillars from './pages/Pillars'
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="me" element={<Dashboard />} />
         <Route path="my-dashboard" element={<Navigate to="/me" replace />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="u/:id" element={<PublicProfilePage />} />
         <Route path="academic" element={<Academic />} />
         <Route path="psychometric" element={<Psychometric />} />
         <Route path="pillars" element={<Pillars />} />

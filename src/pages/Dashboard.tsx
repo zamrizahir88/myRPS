@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { useAcademic } from '../hooks/useAcademic'
 import ProgressBar from '../components/ProgressBar'
+import RpsCard from '../components/RpsCard'
 import { Alert, Spinner, StatTile } from '../components/ui'
 import { PILLARS } from '../lib/pillars'
 interface Announcement { id: string; body: string; created_at: string }
@@ -25,9 +26,6 @@ export default function Dashboard() {
   // If this account is the configured RPS address but has no admin rights,
   // say so plainly instead of silently showing a student dashboard.
   const [shouldBeAdmin, setShouldBeAdmin] = useState(false)
-  // Read after sign-in rather than baked into the bundle, so the number is
-  // not on a public page.
-  const [whatsapp, setWhatsapp] = useState('')
 
   useEffect(() => {
     if (!profile?.id) return
@@ -49,7 +47,6 @@ export default function Dashboard() {
         .in('key', ['bootstrap_admin_email', 'rps_whatsapp'])
       const byKey = new Map(((settings as { key: string; value: string | null }[]) ?? [])
         .map((row) => [row.key, row.value ?? '']))
-      setWhatsapp((byKey.get('rps_whatsapp') ?? '').replace(/\D/g, ''))
       const configured = (byKey.get('bootstrap_admin_email') ?? '').trim().toLowerCase()
       const mine = (profile.email_official ?? '').trim().toLowerCase()
       setShouldBeAdmin(!!configured && configured === mine)
@@ -59,12 +56,6 @@ export default function Dashboard() {
   if (academic.loading || hasTest === null) return <Spinner label={t.common.loading} />
 
   const firstName = (profile?.full_name ?? '').split(' ')[0] || '👋'
-  const whatsappText = encodeURIComponent(
-    f(t.dash.whatsappMessage, {
-      name: profile?.full_name ?? '',
-      matric: profile?.matric_no ?? '',
-    }),
-  )
 
   // One next step, not a checklist of everything undone.
   const nextStep = !profile?.profile_completed
@@ -83,19 +74,8 @@ export default function Dashboard() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">{f(t.dash.welcome, { name: firstName })}</h1>
-        {whatsapp && (
-          <a
-            href={`https://wa.me/${whatsapp}?text=${whatsappText}`}
-            target="_blank" rel="noreferrer"
-            className="btn-primary bg-[#1baf7a] hover:bg-[#199e70]"
-            title={t.dash.whatsappHint}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 1.9c.1.1.1.3 0 .5l-.3.4-.3.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2 1.3 2.3 1.4.3.1.4.1.6-.1l.8-1c.2-.2.4-.2.6-.1l1.8.9c.2.1.4.2.5.3 0 .1 0 .7-.3 1.3Z" />
-            </svg>
-            {t.dash.whatsapp}
-          </a>
-        )}
+        {/* Contact now lives on the RPS card, which carries the office,
+            the CV link and the message as well as the number. */}
       </div>
 
       {shouldBeAdmin && !isAdmin && (
@@ -154,6 +134,10 @@ export default function Dashboard() {
           }
           sub={hasTest ? undefined : t.dash.notTaken}
         />
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <RpsCard />
       </div>
 
       {announcements.length > 0 && (

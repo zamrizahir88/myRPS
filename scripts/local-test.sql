@@ -520,3 +520,75 @@ begin
   values (auth.uid(), 'announcement', 'Jumpa saya minggu depan');
   raise notice 'PASS: the RPS can moderate and broadcast';
 end $$;
+
+\echo '--- opt-in student profiles ---'
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+
+do $$
+declare n int;
+begin
+  select count(*) into n from public.public_profiles;
+  if n <> 0 then raise exception 'FAIL: profiles visible before anyone opted in (%)', n; end if;
+  raise notice 'PASS: nobody is listed until they opt in';
+end $$;
+
+reset role;
+set request.jwt.claim.sub = '';
+update public.profiles set share_profile = true, bio = 'Suka elektronik dan kopi'
+ where id = '00000000-0000-0000-0000-0000000000b2';
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+do $$
+declare r record;
+begin
+  select * into r from public.public_profiles
+   where user_id = '00000000-0000-0000-0000-0000000000b2';
+  if r.user_id is null then raise exception 'FAIL: opted-in profile not visible'; end if;
+  if r.persona is not null then
+    raise exception 'FAIL: persona leaked without its own switch';
+  end if;
+  if r.pillars_done is not null then
+    raise exception 'FAIL: pillar count leaked without its own switch';
+  end if;
+  raise notice 'PASS: opting in shows the profile but not the persona or pillars';
+end $$;
+
+do $$
+declare cols text;
+begin
+  select string_agg(column_name, ',' order by ordinal_position) into cols
+  from information_schema.columns where table_name = 'public_profiles';
+  if cols ~* '(cgpa|credit|ic_no|phone|address|race|religion|income|email)' then
+    raise exception 'FAIL: public_profiles exposes %', cols;
+  end if;
+  raise notice 'PASS: public profile columns are %', cols;
+end $$;
+
+\echo '--- the RPS card ---'
+do $$
+declare cols text; n int;
+begin
+  select string_agg(column_name, ',' order by ordinal_position) into cols
+  from information_schema.columns where table_name = 'rps_card';
+  if cols ~* '(ic_no|date_of_birth|address|kin_|parental|race|religion)' then
+    raise exception 'FAIL: rps_card exposes personal data: %', cols;
+  end if;
+  select count(*) into n from public.rps_card;
+  if n <> 1 then raise exception 'FAIL: expected exactly one RPS card, got %', n; end if;
+  raise notice 'PASS: students can reach their RPS, and see nothing personal';
+end $$;
+
+reset role;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000c1';
+set role authenticated;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.rps_card;
+  if n <> 0 then raise exception 'FAIL: unapproved account read the RPS card'; end if;
+  select count(*) into n from public.public_profiles;
+  if n <> 0 then raise exception 'FAIL: unapproved account read student profiles'; end if;
+  raise notice 'PASS: unapproved accounts see neither';
+end $$;

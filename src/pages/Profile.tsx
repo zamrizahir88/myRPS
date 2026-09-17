@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { downscaleToJpeg } from '../lib/image'
 import { Alert, Avatar, Field, Modal, Spinner } from '../components/ui'
+import StaffProfile from './StaffProfile'
+import { useToast } from '../components/Toast'
 import type { Profile } from '../lib/types'
 
 const MALAYSIAN_STATES = [
@@ -20,7 +22,8 @@ const REQUIRED_FIELDS: (keyof Profile)[] = ['full_name', 'matric_no', 'phone_mob
 
 export default function ProfilePage() {
   const { t, locale } = useI18n()
-  const { profile, refreshProfile } = useAuth()
+  const { profile, refreshProfile, isAdmin } = useAuth()
+  const { show } = useToast()
   const [form, setForm] = useState<Partial<Profile>>({})
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -56,6 +59,8 @@ export default function ProfilePage() {
   }, [profile?.avatar_path])
 
   if (!profile) return <Spinner />
+  // The RPS is not a student; they get their own, much shorter form.
+  if (isAdmin) return <StaffProfile />
 
   function set<K extends keyof Profile>(key: K, value: Profile[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -103,7 +108,7 @@ export default function ProfilePage() {
 
     setBusy(false)
     if (err) setError(err.message)
-    else { setSaved(true); await refreshProfile() }
+    else { setSaved(true); show(t.profile.saved); await refreshProfile() }
   }
 
   async function onDelete() {
@@ -275,6 +280,45 @@ export default function ProfilePage() {
       </section>
 
       <section className="card">
+        <h2 className="section-title">{t.sharing.title}</h2>
+        <p className="mb-4 mt-1 text-xs" style={{ color: 'var(--text-3)' }}>{t.sharing.intro}</p>
+
+        <div className="space-y-3">
+          <Toggle
+            checked={!!form.share_profile}
+            onChange={(v) => set('share_profile', v)}
+            label={t.sharing.shareProfile}
+            hint={t.sharing.shareProfileHint}
+          />
+          <Toggle
+            checked={!!form.share_persona}
+            onChange={(v) => set('share_persona', v)}
+            label={t.sharing.sharePersona}
+            hint={t.sharing.sharePersonaHint}
+            disabled={!form.share_profile}
+          />
+          <Toggle
+            checked={!!form.share_pillars}
+            onChange={(v) => set('share_pillars', v)}
+            label={t.sharing.sharePillars}
+            disabled={!form.share_profile}
+          />
+        </div>
+
+        <div className="mt-4">
+          <Field label={t.sharing.bio} hint={t.sharing.bioHint}>
+            <textarea
+              className="input" rows={2} maxLength={280}
+              value={form.bio ?? ''}
+              onChange={(e) => set('bio', e.target.value)}
+            />
+          </Field>
+        </div>
+
+        <Alert tone="info">{t.sharing.never}</Alert>
+      </section>
+
+      <section className="card">
         <h2 className="section-title mb-4">{t.profile.career}</h2>
         <Field label={t.profile.careerGoal} hint={t.profile.careerHint}>
           <textarea
@@ -306,5 +350,30 @@ export default function ProfilePage() {
         </div>
       </Modal>
     </form>
+  )
+}
+
+
+function Toggle({
+  checked, onChange, label, hint, disabled,
+}: {
+  checked: boolean
+  onChange: (value: boolean) => void
+  label: string
+  hint?: string
+  disabled?: boolean
+}) {
+  return (
+    <label className={`flex gap-3 ${disabled ? 'opacity-50' : ''}`}>
+      <input
+        type="checkbox" checked={checked} disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0"
+      />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium">{label}</span>
+        {hint && <span className="mt-0.5 block text-xs" style={{ color: 'var(--text-3)' }}>{hint}</span>}
+      </span>
+    </label>
   )
 }

@@ -49,6 +49,16 @@ export interface Profile {
   sponsor_name: string | null
   career_goal: string | null
   avatar_path: string | null
+  title: string | null
+  position_title: string | null
+  department: string | null
+  office_location: string | null
+  whatsapp: string | null
+  cv_url: string | null
+  bio: string | null
+  share_profile: boolean
+  share_persona: boolean
+  share_pillars: boolean
   consent_version: string | null
   consent_at: string | null
   is_demo: boolean
