@@ -7,6 +7,8 @@ import RadarChart from './components/RadarChart'
 import { Logo, Wordmark } from './components/Brand'
 import Footer from './components/Footer'
 import AuthHero from './components/AuthHero'
+import { SkeletonCard } from './components/Skeleton'
+import EmptyState, { EmptyIcons } from './components/EmptyState'
 import './index.css'
 
 /**
@@ -139,6 +141,26 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </ul>
 
         <div className="card flex justify-center"><RadarChart scores={scores} /></div>
+
+        <SkeletonCard lines={2} />
+        <EmptyState
+          icon={EmptyIcons.calendar}
+          title="Start your first semester"
+          body="No semesters recorded yet. Add the one you are in now, then list the subjects you are taking."
+          actionLabel="+ New semester"
+          onAction={() => {}}
+        />
+        <div className="flex flex-wrap gap-2">
+          <span className="chip tint-good">Saved</span>
+          <span className="chip tint-bad">Error</span>
+          <span className="chip tint-info">Info</span>
+          <span
+            className="inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+            style={{ background: 'var(--status-critical)' }}
+          >
+            3
+          </span>
+        </div>
 
         <Modal open onClose={() => {}} title="A modal">
           <p className="text-sm">Modal body text.</p>

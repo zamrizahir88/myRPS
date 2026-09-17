@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 
 export function Spinner({ label }: { label?: string }) {
@@ -89,6 +90,25 @@ export function Modal({
   title: string
   children: ReactNode
 }) {
+  // Escape, and the Android back button, both close the sheet. Without the
+  // history entry, back exits the app entirely — which is what it did.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+
+    window.history.pushState({ myrpsModal: true }, '')
+    const onPop = () => onClose()
+    window.addEventListener('popstate', onPop)
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('popstate', onPop)
+      // if the modal closed by any other route, drop the entry we added
+      if (window.history.state?.myrpsModal) window.history.back()
+    }
+  }, [open, onClose])
+
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">

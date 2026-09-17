@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useI18n } from '../../i18n'
-import { Alert, Avatar, Spinner } from '../../components/ui'
+import { Alert, Avatar } from '../../components/ui'
+import { SkeletonList } from '../../components/Skeleton'
+import EmptyState, { EmptyIcons } from '../../components/EmptyState'
 import { useAvatarUrls } from '../../hooks/useAvatarUrls'
 
 import type { StudentSummary } from '../../lib/types'
@@ -98,7 +100,7 @@ export default function StudentList() {
     URL.revokeObjectURL(url)
   }
 
-  if (loading) return <Spinner />
+  if (loading) return <SkeletonList count={4} lines={2} />
 
   return (
     <div className="space-y-4">
@@ -123,8 +125,12 @@ export default function StudentList() {
         <button onClick={exportCsv} className="btn-ghost ml-auto text-xs">{t.admin.exportCsv}</button>
       </div>
 
-      {onlyFlagged && filtered.length === 0 ? (
-        <Alert tone="good">{t.admin.allClear}</Alert>
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={rows.length === 0 ? EmptyIcons.people : EmptyIcons.check}
+          title={rows.length === 0 ? t.admin.noStudentsTitle : t.admin.allClearTitle}
+          body={rows.length === 0 ? t.admin.noStudents : t.admin.allClear}
+        />
       ) : (
         <div className="card">
           <p className="mb-3 text-xs text-[color:var(--text-3)]">{t.admin.attentionHint}</p>

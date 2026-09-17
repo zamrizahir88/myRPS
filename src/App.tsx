@@ -28,7 +28,8 @@ export default function App() {
 
       <Route element={<RequireStudent><Layout /></RequireStudent>}>
         <Route index element={<Home />} />
-        <Route path="my-dashboard" element={<Dashboard />} />
+        <Route path="me" element={<Dashboard />} />
+        <Route path="my-dashboard" element={<Navigate to="/me" replace />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="academic" element={<Academic />} />
         <Route path="psychometric" element={<Psychometric />} />

@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
-import { Alert, Avatar, Spinner } from '../components/ui'
+import { Alert, Avatar } from '../components/ui'
+import { SkeletonList } from '../components/Skeleton'
+import EmptyState, { EmptyIcons } from '../components/EmptyState'
+import { usePullToRefresh } from '../hooks/usePullToRefresh'
+import { useToast } from '../components/Toast'
 import { useAvatarUrls } from '../hooks/useAvatarUrls'
 import Greeting from '../components/Greeting'
 import type { LeaderboardRow, Subject } from '../lib/types'
@@ -50,6 +54,7 @@ export default function Feed() {
   const [openComments, setOpenComments] = useState<Set<string>>(new Set())
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({})
   const [sentAt, setSentAt] = useState(0)
+  const { show } = useToast()
 
   const load = useCallback(async () => {
     const [p, c, r, n, lb, subs] = await Promise.all([
@@ -121,12 +126,27 @@ export default function Feed() {
     [reactions],
   )
 
+  const { pull, refreshing } = usePullToRefresh(load)
+
   const visible = useMemo(
     () => (filter === 'all' ? posts : posts.filter((p) => p.kind === filter)),
     [posts, filter],
   )
 
-  if (loading) return <Spinner label={t.common.loading} />
+  if (loading) {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center gap-4">
+          <div className="skeleton" style={{ width: 52, height: 52, borderRadius: 999 }} />
+          <div className="flex-1 space-y-2">
+            <div className="skeleton" style={{ width: '45%', height: 20 }} />
+            <div className="skeleton" style={{ width: '30%', height: 12 }} />
+          </div>
+        </div>
+        <SkeletonList count={3} />
+      </div>
+    )
+  }
 
   async function publish() {
     const body = draft.trim()
@@ -143,6 +163,7 @@ export default function Feed() {
     if (err) { setError(err.message); setDraft(body); return }
     setDraftSubject('')
     setDraftKind('post')
+    show(t.feed.posted)
     await load()
   }
 
@@ -185,6 +206,14 @@ export default function Feed() {
 
   return (
     <div className="space-y-5">
+      {(pull > 0 || refreshing) && (
+        <div
+          className="flex items-center justify-center overflow-hidden text-xs font-semibold transition-all"
+          style={{ height: refreshing ? 32 : pull, color: 'var(--text-3)' }}
+        >
+          {refreshing ? t.common.loading : t.feed.pullToRefresh}
+        </div>
+      )}
       <Greeting subtitle={t.feed.subtitle} />
       {error && <Alert tone="critical">{error}</Alert>}
 
@@ -261,9 +290,11 @@ export default function Feed() {
           </div>
 
           {visible.length === 0 && (
-            <div className="card text-center">
-              <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t.feed.empty}</p>
-            </div>
+            <EmptyState
+              icon={EmptyIcons.chat}
+              title={filter === 'all' ? t.feed.emptyTitle : t.feed.emptyFilterTitle}
+              body={filter === 'all' ? t.feed.empty : t.feed.emptyFilter}
+            />
           )}
 
           {visible.map((post) => {

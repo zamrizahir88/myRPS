@@ -5,7 +5,10 @@ import { useI18n } from '../i18n'
 import { useAcademic } from '../hooks/useAcademic'
 import { sessionOptions, termLabel } from '../lib/academic'
 import ProgressBar from '../components/ProgressBar'
-import { Alert, Field, Modal, Spinner, StatTile } from '../components/ui'
+import { Alert, Field, Modal, StatTile } from '../components/ui'
+import { SkeletonList } from '../components/Skeleton'
+import EmptyState, { EmptyIcons } from '../components/EmptyState'
+import { useToast } from '../components/Toast'
 import type { RecordState, StudentRecord, StudentTerm, Subject } from '../lib/types'
 
 const STATES: RecordState[] = ['active', 'pass', 'fail', 'exempted', 'planned']
@@ -33,6 +36,7 @@ export default function Academic() {
   const [recordDraft, setRecordDraft] = useState<Partial<StudentRecord> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const { show } = useToast()
 
   const byTerm = useMemo(() => {
     const map = new Map<string, StudentRecord[]>()
@@ -48,7 +52,7 @@ export default function Academic() {
     [a.termGpas],
   )
 
-  if (a.loading) return <Spinner label={t.common.loading} />
+  if (a.loading) return <SkeletonList count={3} lines={3} />
   if (!profile?.intake_year) return <Alert tone="warning">{t.profile.incomplete}</Alert>
 
   async function saveTerm() {
@@ -63,6 +67,7 @@ export default function Academic() {
       return
     }
     setTermDraft(null)
+    show(t.academic.termAdded)
     await a.reload()
   }
 
@@ -91,6 +96,7 @@ export default function Academic() {
       return
     }
     setRecordDraft(null)
+    show(t.common.saved)
     await a.reload()
   }
 
@@ -172,12 +178,13 @@ export default function Academic() {
       )}
 
       {a.terms.length === 0 && (
-        <div className="card text-center">
-          <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t.academic.noTerms}</p>
-          <button onClick={() => setTermDraft(nextTermDefault())} className="btn-primary mt-3">
-            + {t.academic.newTerm}
-          </button>
-        </div>
+        <EmptyState
+          icon={EmptyIcons.calendar}
+          title={t.academic.noTermsTitle}
+          body={t.academic.noTerms}
+          actionLabel={`+ ${t.academic.newTerm}`}
+          onAction={() => setTermDraft(nextTermDefault())}
+        />
       )}
 
       {a.terms.map((term) => {

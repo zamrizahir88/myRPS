@@ -4,7 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { PILLARS } from '../lib/pillars'
 import ProgressBar from '../components/ProgressBar'
-import { Alert, Field, Modal, Spinner } from '../components/ui'
+import { Alert, Field, Modal } from '../components/ui'
+import { SkeletonList } from '../components/Skeleton'
+import EmptyState, { EmptyIcons } from '../components/EmptyState'
+import { useToast } from '../components/Toast'
 import type { Meeting, PillarCompletion } from '../lib/types'
 
 export default function Pillars() {
@@ -17,6 +20,7 @@ export default function Pillars() {
   const [error, setError] = useState<string | null>(null)
   const [editingPillar, setEditingPillar] = useState<{ code: string; activity: string; date: string } | null>(null)
   const [editingMeeting, setEditingMeeting] = useState<Partial<Meeting> | null>(null)
+  const { show } = useToast()
 
   async function load() {
     if (!profile?.id) return
@@ -31,7 +35,7 @@ export default function Pillars() {
 
   useEffect(() => { void load() }, [profile?.id])
 
-  if (loading) return <Spinner label={t.common.loading} />
+  if (loading) return <SkeletonList count={2} lines={4} />
 
   const doneMap = new Map(completions.map((c) => [c.pillar_code, c]))
 
@@ -56,6 +60,7 @@ export default function Pillars() {
     })
     if (err) { setError(err.message); return }
     setEditingPillar(null)
+    show(t.pillars.pillarSaved)
     await load()
   }
 
@@ -74,6 +79,7 @@ export default function Pillars() {
       : await supabase.from('meetings').insert(payload)
     if (err) { setError(err.message); return }
     setEditingMeeting(null)
+    show(t.common.saved)
     await load()
   }
 
@@ -144,7 +150,13 @@ export default function Pillars() {
         <p className="mb-4 text-xs text-[color:var(--text-3)]">{t.pillars.meetingsHint}</p>
 
         {meetings.length === 0 ? (
-          <Alert tone="info">{t.pillars.noMeetings}</Alert>
+          <EmptyState
+            icon={EmptyIcons.people}
+            title={t.pillars.noMeetingsTitle}
+            body={t.pillars.noMeetings}
+            actionLabel={t.pillars.addMeeting}
+            onAction={() => setEditingMeeting({ meeting_at: new Date().toISOString().slice(0, 16) })}
+          />
         ) : (
           <ul className="space-y-3">
             {meetings.map((m) => (

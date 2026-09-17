@@ -10,7 +10,7 @@ import AuthShell from '../components/AuthShell'
 
 export default function Login() {
   const { t } = useI18n()
-  const { session, loading } = useAuth()
+  const { session, loading, sessionExpired, clearSessionExpired } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,7 +30,7 @@ export default function Login() {
       email: email.trim(), password,
     })
     setBusy(false)
-    if (!err) { navigate('/'); return }
+    if (!err) { clearSessionExpired(); navigate('/'); return }
     const problem = describeAuthError(err.message, t)
     setError(problem.message)
     setNeedsConfirm(problem.kind === 'unconfirmed')
@@ -72,6 +72,9 @@ export default function Login() {
           </Alert>
         )}
         {notice && <Alert tone="good">{notice}</Alert>}
+        {sessionExpired && !error && (
+          <Alert tone="warning">{t.auth.sessionExpired}</Alert>
+        )}
 
         <Field label={t.auth.email}>
           <input

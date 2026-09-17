@@ -1,13 +1,13 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import Dashboard from './Dashboard'
+import Feed from './Feed'
 
 /**
- * The RPS and a student want completely different first screens. The RPS has
- * no credits to track and no psychometric test to sit; their landing page is
- * their advisees.
+ * Everyone lands on the feed. It is the one screen that changes between
+ * visits, so it is the reason to open the app; the RPS's advisee list and the
+ * student's own progress are both one tap away.
  */
 export default function Home() {
   const { showAdminUi } = useAuth()
-  return showAdminUi ? <Navigate to="/admin" replace /> : <Dashboard />
+  return showAdminUi ? <Navigate to="/feed" replace /> : <Feed />
 }

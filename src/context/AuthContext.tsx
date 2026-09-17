@@ -16,11 +16,17 @@ interface AuthValue {
   showAdminUi: boolean
   /** Signed URL for the signed-in user's own photo, if they have one. */
   avatarUrl: string | null
+  /** True when a token refresh failed and the user has to sign in again. */
+  sessionExpired: boolean
+  clearSessionExpired: () => void
   loading: boolean
   refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
 }
 
+// sessionStorage, not localStorage: previewing the student side is a thing
+// you do for a few minutes, not a setting. It also clears on every sign-in
+// below, so signing in never drops the RPS into the student view.
 const PREVIEW_KEY = 'myrps.previewAsStudent'
 
 const AuthContext = createContext<AuthValue | null>(null)
@@ -33,16 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [previewAsStudent, setPreview] = useState(() => {
     try {
-      return localStorage.getItem(PREVIEW_KEY) === '1'
+      return sessionStorage.getItem(PREVIEW_KEY) === '1'
     } catch {
       return false
     }
   })
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const setPreviewAsStudent = useCallback((on: boolean) => {
     setPreview(on)
     try {
-      localStorage.setItem(PREVIEW_KEY, on ? '1' : '0')
+      sessionStorage.setItem(PREVIEW_KEY, on ? '1' : '0')
     } catch {
       // not fatal — the switch just won't survive a reload
     }
@@ -84,8 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (active) setLoading(false)
     })
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, next) => {
       if (!active) return
+
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        // Always start in the role you actually have.
+        setPreview(false)
+        try { sessionStorage.removeItem(PREVIEW_KEY) } catch { /* blocked storage */ }
+      }
+
+      // Supabase refreshes tokens on its own, so a session normally never
+      // ends. It only lands here when the refresh genuinely failed — password
+      // changed, signed out elsewhere, or the project was paused — and the
+      // app would otherwise just stop working with no explanation.
+      if (event === 'TOKEN_REFRESHED' && !next) setSessionExpired(true)
+      if (event === 'SIGNED_OUT' && session) setSessionExpired(false)
+
       setSession(next)
       await loadProfile(next?.user.id)
       setLoading(false)
@@ -103,6 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       isAdmin,
       avatarUrl,
+      sessionExpired,
+      clearSessionExpired: () => setSessionExpired(false),
       previewAsStudent,
       setPreviewAsStudent,
       showAdminUi: isAdmin && !previewAsStudent,
@@ -115,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAvatarUrl(null)
       },
     }),
-    [session, profile, isAdmin, avatarUrl, previewAsStudent, setPreviewAsStudent, loading, loadProfile],
+    [session, profile, isAdmin, avatarUrl, sessionExpired, previewAsStudent, setPreviewAsStudent, loading, loadProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
