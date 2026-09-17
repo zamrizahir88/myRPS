@@ -528,14 +528,17 @@ set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
 do $$
 declare n int;
 begin
+  -- visible by default now, so classmates can actually find each other
   select count(*) into n from public.public_profiles;
-  if n <> 0 then raise exception 'FAIL: profiles visible before anyone opted in (%)', n; end if;
-  raise notice 'PASS: nobody is listed until they opt in';
+  if n = 0 then raise exception 'FAIL: no profiles visible although sharing defaults to on'; end if;
+  raise notice 'PASS: profiles are visible to classmates by default (% listed)', n;
 end $$;
 
 reset role;
 set request.jwt.claim.sub = '';
-update public.profiles set share_profile = true, bio = 'Suka elektronik dan kopi'
+update public.profiles set bio = 'Suka elektronik dan kopi'
+ where id = '00000000-0000-0000-0000-0000000000b2';
+update public.profiles set share_persona = false, share_pillars = false
  where id = '00000000-0000-0000-0000-0000000000b2';
 
 set role authenticated;
@@ -547,12 +550,12 @@ begin
    where user_id = '00000000-0000-0000-0000-0000000000b2';
   if r.user_id is null then raise exception 'FAIL: opted-in profile not visible'; end if;
   if r.persona is not null then
-    raise exception 'FAIL: persona leaked without its own switch';
+    raise exception 'FAIL: persona still shown after being switched off';
   end if;
   if r.pillars_done is not null then
-    raise exception 'FAIL: pillar count leaked without its own switch';
+    raise exception 'FAIL: pillar count still shown after being switched off';
   end if;
-  raise notice 'PASS: opting in shows the profile but not the persona or pillars';
+  raise notice 'PASS: switching a field off hides it while the profile stays visible';
 end $$;
 
 do $$
@@ -590,5 +593,21 @@ begin
   if n <> 0 then raise exception 'FAIL: unapproved account read the RPS card'; end if;
   select count(*) into n from public.public_profiles;
   if n <> 0 then raise exception 'FAIL: unapproved account read student profiles'; end if;
-  raise notice 'PASS: unapproved accounts see neither';
+  raise notice 'PASS: unapproved accounts see neither, default or not';
+end $$;
+
+-- the RPS must never appear as a student profile
+reset role;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+set role authenticated;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.public_profiles
+   where user_id = '00000000-0000-0000-0000-0000000000aa';
+  if n <> 0 then raise exception 'FAIL: the RPS is listed as a student profile'; end if;
+  select count(*) into n from public.rps_card
+   where user_id = '00000000-0000-0000-0000-0000000000aa';
+  if n <> 1 then raise exception 'FAIL: the RPS has no staff card'; end if;
+  raise notice 'PASS: the RPS resolves to a staff card, never a student profile';
 end $$;

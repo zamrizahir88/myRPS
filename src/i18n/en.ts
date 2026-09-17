@@ -141,7 +141,7 @@ export const en = {
   },
   psychometric: {
     title: 'Psychometric Test',
-    intro: 'Seventy statements. Score each one from 1 (mostly disagree) to 4 (mostly agree). There are no right or wrong answers — answer quickly and honestly.',
+    intro: 'Your classmates can see the items below. Turn any of them off if you would rather keep it to yourself.',
     attribution: 'Multiple Intelligences Test based on Howard Gardner\'s MI model, © V Chislett MSc & A Chapman 2005-06, available free from businessballs.com. Reproduced for UniMAP RPS Modul 2.',
     oneAttempt: 'You may take this once. Your RPS can reset it if you need another attempt.',
     start: 'Start the test', submit: 'See my result',
@@ -291,7 +291,7 @@ export const en = {
   sharing: {
     title: 'What classmates can see',
     intro: 'By default your classmates see only your name and photo. Turn these on to share more.',
-    shareProfile: 'Show my profile to classmates',
+    shareProfile: 'Let classmates see my profile',
     shareProfileHint: 'Your photo, name, current semester and short bio.',
     sharePersona: 'Show my psychometric persona',
     sharePersonaHint: 'Only the persona name, for example "Sang Pereka". Never your scores.',

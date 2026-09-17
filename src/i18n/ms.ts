@@ -143,7 +143,7 @@ export const ms: Dict = {
   },
   psychometric: {
     title: 'Ujian Psikometrik',
-    intro: 'Tujuh puluh pernyataan. Beri skor 1 (sangat tidak setuju) hingga 4 (sangat setuju). Tiada jawapan betul atau salah — jawab dengan pantas dan jujur.',
+    intro: 'Rakan sekohort anda boleh melihat perkara di bawah. Matikan mana-mana yang anda mahu rahsiakan.',
     attribution: 'Ujian Multiple Intelligences berdasarkan model MI Howard Gardner, © V Chislett MSc & A Chapman 2005-06, diperoleh percuma daripada businessballs.com. Digunakan untuk Modul 2 RPS UniMAP.',
     oneAttempt: 'Anda boleh mengambilnya sekali sahaja. RPS anda boleh menetapkan semula jika perlu.',
     start: 'Mula ujian', submit: 'Lihat keputusan saya',
@@ -293,7 +293,7 @@ export const ms: Dict = {
   sharing: {
     title: 'Apa yang rakan sekohort boleh lihat',
     intro: 'Secara lalai rakan anda hanya melihat nama dan gambar. Hidupkan pilihan di bawah untuk berkongsi lebih.',
-    shareProfile: 'Papar profil saya kepada rakan sekohort',
+    shareProfile: 'Benarkan rakan sekohort melihat profil saya',
     shareProfileHint: 'Gambar, nama, semester semasa dan bio ringkas anda.',
     sharePersona: 'Papar persona psikometrik saya',
     sharePersonaHint: 'Nama persona sahaja, contohnya "Sang Pereka". Bukan skor anda.',

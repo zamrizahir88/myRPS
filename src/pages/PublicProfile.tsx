@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useI18n } from '../i18n'
 import { useAvatarUrls } from '../hooks/useAvatarUrls'
 import { Avatar } from '../components/ui'
+import RpsCard from '../components/RpsCard'
 import { SkeletonCard } from '../components/Skeleton'
 import EmptyState, { EmptyIcons } from '../components/EmptyState'
 import { DEFINITIONS } from '../lib/intelligences'
@@ -28,18 +29,36 @@ export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>()
   const { t, locale } = useI18n()
   const [person, setPerson] = useState<PublicProfile | null>(null)
+  const [isRps, setIsRps] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabase
-        .from('public_profiles').select('*').eq('user_id', id).maybeSingle()
-      setPerson((data as PublicProfile) ?? null)
+      // The RPS is not in public_profiles — that view is students only — so
+      // their own name used to resolve to "this profile is private".
+      const [{ data: student }, { data: staff }] = await Promise.all([
+        supabase.from('public_profiles').select('*').eq('user_id', id).maybeSingle(),
+        supabase.from('rps_card').select('user_id').eq('user_id', id).maybeSingle(),
+      ])
+      setPerson((student as PublicProfile) ?? null)
+      setIsRps(!!staff)
       setLoading(false)
     })()
   }, [id])
 
   if (loading) return <SkeletonCard lines={4} />
+
+  if (isRps) {
+    return (
+      <div className="mx-auto max-w-xl space-y-5">
+        <Link to="/feed" className="text-xs font-semibold" style={{ color: 'var(--brand)' }}>
+          ← {t.nav.feed}
+        </Link>
+        <RpsCard />
+      </div>
+    )
+  }
+
   if (!person) {
     return (
       <EmptyState
