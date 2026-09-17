@@ -611,3 +611,83 @@ begin
   if n <> 1 then raise exception 'FAIL: the RPS has no staff card'; end if;
   raise notice 'PASS: the RPS resolves to a staff card, never a student profile';
 end $$;
+
+\echo '--- the demo student account ---'
+reset role;
+reset request.jwt.claim.sub;
+-- An out-of-domain address, to prove the demo list really does bypass the
+-- domain rule rather than the address simply happening to be a student one.
+update public.app_settings
+   set value = 'demo.student@studentmail.unimap.edu.my, rpstest@gmail.com'
+ where key = 'demo_emails';
+
+insert into auth.users (id, email)
+values ('00000000-0000-0000-0000-0000000000e1', 'rpstest@gmail.com');
+
+do $$
+declare p public.profiles;
+begin
+  select * into p from public.profiles where id = '00000000-0000-0000-0000-0000000000e1';
+  if p.id is null then raise exception 'FAIL: a listed demo address was refused registration'; end if;
+  if p.approval_state <> 'approved' then
+    raise exception 'FAIL: the demo account is %, not approved', p.approval_state;
+  end if;
+  if not p.is_demo then raise exception 'FAIL: the demo account is not flagged is_demo'; end if;
+  raise notice 'PASS: a demo address registers whatever the domain, approved and flagged';
+end $$;
+
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000aa';
+set role authenticated;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.leaderboard
+   where user_id = '00000000-0000-0000-0000-0000000000e1';
+  if n <> 0 then raise exception 'FAIL: the demo account is competing on the leaderboard'; end if;
+  select count(*) into n from public.member_names
+   where user_id = '00000000-0000-0000-0000-0000000000e1';
+  if n <> 1 then raise exception 'FAIL: the demo account has no name in the feed'; end if;
+  select count(*) into n from public.student_summary
+   where user_id = '00000000-0000-0000-0000-0000000000e1' and is_demo;
+  if n <> 1 then raise exception 'FAIL: the RPS cannot find the demo account in My Students'; end if;
+  raise notice 'PASS: the demo account is testable but never on the leaderboard';
+end $$;
+
+\echo '--- a demo student records subjects, and the RPS sees them ---'
+reset role;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000e1';
+set role authenticated;
+do $$
+declare term_id uuid; subj uuid; n int;
+begin
+  update public.profiles
+     set full_name = 'Pelajar Demo', intake_year = '2026', profile_completed = true
+   where id = '00000000-0000-0000-0000-0000000000e1';
+
+  insert into public.student_terms (user_id, session, semester, study_year)
+  values ('00000000-0000-0000-0000-0000000000e1', '2026/2027', 1, 1)
+  returning id into term_id;
+
+  select id into subj from public.curriculum_subjects
+   where intake_year = '2026' and is_graded order by code limit 1;
+
+  insert into public.student_records (user_id, subject_id, term_id, state, grade)
+  values ('00000000-0000-0000-0000-0000000000e1', subj, term_id, 'pass', 'A');
+
+  select count(*) into n from public.student_records
+   where user_id = '00000000-0000-0000-0000-0000000000e1';
+  if n <> 1 then raise exception 'FAIL: the demo student could not record a subject'; end if;
+  raise notice 'PASS: a demo student can record a semester and a grade';
+end $$;
+
+reset role;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000aa';
+set role authenticated;
+do $$
+declare n int;
+begin
+  select count(*) into n from public.student_records
+   where user_id = '00000000-0000-0000-0000-0000000000e1';
+  if n <> 1 then raise exception 'FAIL: the RPS cannot see the demo student''s record'; end if;
+  raise notice 'PASS: the RPS sees what the demo student entered';
+end $$;

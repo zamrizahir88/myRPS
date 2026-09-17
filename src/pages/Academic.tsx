@@ -25,7 +25,7 @@ type TermDraft = { study_year: number; semester: number; session: string }
 
 export default function Academic() {
   const { t, locale } = useI18n()
-  const { profile } = useAuth()
+  const { profile, previewAsStudent } = useAuth()
   const a = useAcademic({
     userId: profile?.id,
     programmeCode: profile?.programme_code,
@@ -53,7 +53,20 @@ export default function Academic() {
   )
 
   if (a.loading) return <SkeletonList count={3} lines={3} />
-  if (!profile?.intake_year) return <Alert tone="warning">{t.profile.incomplete}</Alert>
+  // An RPS previewing the student side has no programme or intake of their
+  // own, so the generic "complete your profile" line sent them to a form that
+  // does not apply to them. Say what preview mode is, and where to test for real.
+  if (!profile?.intake_year) {
+    return previewAsStudent ? (
+      <div className="card space-y-2">
+        <h2 className="section-title">{t.nav.previewNoStudentTitle}</h2>
+        <p className="text-sm text-[color:var(--text-2)]">{t.nav.previewNoStudentBody}</p>
+        <p className="text-sm text-[color:var(--text-2)]">{t.nav.previewUseDemo}</p>
+      </div>
+    ) : (
+      <Alert tone="warning">{t.profile.incomplete}</Alert>
+    )
+  }
 
   async function saveTerm() {
     if (!termDraft) return
