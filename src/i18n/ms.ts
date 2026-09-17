@@ -96,6 +96,7 @@ export const ms: Dict = {
     spm: 'Keputusan SPM', stpm: 'Keputusan STPM / Diploma',
     sponsorName: 'Penaja', careerGoal: 'Matlamat kerjaya / cita-cita selepas bergraduat',
     careerHint: 'Apa yang anda mahu lakukan dua tahun selepas bergraduat?',
+    unsaved: 'Perubahan belum disimpan',
     save: 'Simpan profil', saved: 'Profil disimpan.',
     optional: 'pilihan', required: 'wajib',
     incomplete: 'Lengkapkan profil anda untuk membuka seluruh sistem.',

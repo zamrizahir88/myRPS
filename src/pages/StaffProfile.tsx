@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { useToast } from '../components/Toast'
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges'
 import { downscaleToJpeg } from '../lib/image'
 import { Alert, Avatar, Field } from '../components/ui'
 import RpsCard from '../components/RpsCard'
@@ -21,7 +22,17 @@ export default function StaffProfile() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => { if (profile) setForm(profile) }, [profile])
+  // Seed once per account. Keyed on the whole profile object, any refresh
+  // while you were typing wiped the form — which is exactly what happened.
+  useEffect(() => {
+    if (profile) setForm(profile)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id])
+
+  const dirty = !!profile && Object.keys(form).some(
+    (k) => (form as Record<string, unknown>)[k] !== (profile as unknown as Record<string, unknown>)[k],
+  )
+  useUnsavedChanges(dirty)
   if (!profile) return null
 
   function set<K extends keyof Profile>(key: K, value: Profile[K]) {
@@ -84,7 +95,12 @@ export default function StaffProfile() {
       <form onSubmit={onSubmit} className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="h-page">{t.staff.title}</h1>
-          <button className="btn-primary" disabled={busy}>{t.profile.save}</button>
+          <div className="flex items-center gap-3">
+            {dirty && (
+              <span className="chip tint-warn">{t.profile.unsaved}</span>
+            )}
+            <button className="btn-primary" disabled={busy}>{t.profile.save}</button>
+          </div>
         </div>
 
         {error && <Alert tone="critical">{error}</Alert>}

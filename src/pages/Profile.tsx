@@ -6,6 +6,7 @@ import { downscaleToJpeg } from '../lib/image'
 import { Alert, Avatar, Field, Modal, Spinner } from '../components/ui'
 import StaffProfile from './StaffProfile'
 import { useToast } from '../components/Toast'
+import { useUnsavedChanges } from '../hooks/useUnsavedChanges'
 import type { Profile } from '../lib/types'
 
 const MALAYSIAN_STATES = [
@@ -46,7 +47,17 @@ export default function ProfilePage() {
     })()
   }, [])
 
-  useEffect(() => { if (profile) setForm(profile) }, [profile])
+  // Seed once per account. Keyed on the whole profile object, any refresh
+  // while you were typing wiped the form — which is exactly what happened.
+  useEffect(() => {
+    if (profile) setForm(profile)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id])
+
+  const dirty = !!profile && Object.keys(form).some(
+    (k) => (form as Record<string, unknown>)[k] !== (profile as unknown as Record<string, unknown>)[k],
+  )
+  useUnsavedChanges(dirty)
 
   useEffect(() => {
     if (!profile?.avatar_path) { setAvatarUrl(null); return }

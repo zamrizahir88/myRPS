@@ -94,6 +94,7 @@ export const en = {
     spm: 'SPM results', stpm: 'STPM / Diploma results',
     sponsorName: 'Sponsor', careerGoal: 'Career goal / post-graduation aspiration',
     careerHint: 'What do you want to be doing two years after graduation?',
+    unsaved: 'Unsaved changes',
     save: 'Save profile', saved: 'Profile saved.',
     optional: 'optional', required: 'required',
     incomplete: 'Complete your profile to unlock the rest of the system.',

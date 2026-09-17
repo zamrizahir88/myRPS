@@ -29,6 +29,12 @@ interface AuthValue {
 // below, so signing in never drops the RPS into the student view.
 const PREVIEW_KEY = 'myrps.previewAsStudent'
 
+function sameProfile(a: Profile | null, b: Profile | null): boolean {
+  if (a === b) return true
+  if (!a || !b) return false
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
 const AuthContext = createContext<AuthValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -68,7 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.rpc('is_admin'),
     ])
     const loaded = (prof as Profile) ?? null
-    setProfile(loaded)
+    // Only replace the object when the row genuinely differs. Supabase emits
+    // auth events routinely — token refresh ticks, tab focus — and each one
+    // used to hand every consumer a brand new object with identical contents,
+    // re-running their effects for no reason.
+    setProfile((current) => (sameProfile(current, loaded) ? current : loaded))
     setIsAdmin(admin === true)
 
     // The bucket is private, so the photo needs a signed link.
