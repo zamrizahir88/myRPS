@@ -15,6 +15,21 @@ const MALAYSIAN_STATES = [
   'Perlis', 'Pulau Pinang', 'Sabah', 'Sarawak', 'Selangor', 'Terengganu',
   'W.P. Kuala Lumpur', 'W.P. Labuan', 'W.P. Putrajaya',
 ]
+// Proper names, so they are not translated. Stored as written here.
+const RESIDENTIAL_COLLEGES = [
+  'International Residential College',
+  'Tunku Abdul Rahman Residential College (PFI 1)',
+  'Tuanku Tengku Fauziah Residential College (PFI 2)',
+  'Tun Hussein Onn',
+  'Tun Dr. Mahathir',
+  'Tun Dr. Ismail',
+  'Tun Ghafar Baba',
+  'Tan Sri Aishah Ghani',
+  'Tun Fatimah',
+  'Tun Abdullah Ahmad Badawi',
+  'UniCITI Alam Residential College',
+]
+
 const INCOME_BANDS = [
   'Bawah RM1000', 'RM1001-RM2000', 'RM2001-RM4000', 'RM4001-RM6000',
   'RM6001-RM10000', 'Melebihi RM10000',
@@ -78,6 +93,11 @@ export default function ProfilePage() {
     setForm((f) => ({ ...f, [key]: value }))
     setSaved(false)
   }
+
+  // The column arrives with 18_residential_college.sql. Until then the row
+  // has no such key, and saving one would fail the whole form.
+  const hasCollege = 'residential_college' in profile
+  const livesOffCampus = form.hostel_status === 'Off Campus'
 
   async function onUpload(file: File) {
     setError(null)
@@ -230,7 +250,26 @@ export default function ProfilePage() {
           {text('postcode', t.profile.postcode)}
           {text('city', t.profile.city)}
           {select('state', t.profile.state, MALAYSIAN_STATES)}
-          {select('hostel_status', t.profile.hostel, ['On Campus', 'Off Campus'])}
+          <Field label={t.profile.hostel}>
+            <select
+              className="input"
+              value={form.hostel_status ?? ''}
+              onChange={(e) => {
+                set('hostel_status', e.target.value)
+                // A college and "Off Campus" cannot both be true.
+                if (hasCollege && e.target.value === 'Off Campus') set('residential_college', null)
+              }}
+            >
+              <option value="">{t.common.notSet}</option>
+              <option value="On Campus">On Campus</option>
+              <option value="Off Campus">Off Campus</option>
+            </select>
+          </Field>
+          {hasCollege && !livesOffCampus && (
+            <div className="sm:col-span-2">
+              {select('residential_college', t.profile.college, RESIDENTIAL_COLLEGES)}
+            </div>
+          )}
         </div>
       </section>
 

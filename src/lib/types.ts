@@ -31,6 +31,8 @@ export interface Profile {
   city: string | null
   state: string | null
   hostel_status: string | null
+  /** Absent until 18_residential_college.sql has been run. */
+  residential_college?: string | null
   kin_name: string | null
   kin_relation: string | null
   kin_phone: string | null

@@ -95,7 +95,13 @@ with checks(step, item, ok) as (
        to_regprocedure('public.record_login()') is not null),
     ('10. MIGRATE_PRESENCE', 'activity times cannot be edited by students',
        to_regclass('public.user_activity') is not null
-       and not has_table_privilege('authenticated', 'public.user_activity', 'insert, update, delete'))
+       and not has_table_privilege('authenticated', 'public.user_activity', 'insert, update, delete')),
+
+    -- ---- MIGRATE_RESIDENTIAL_COLLEGE.sql ------------------------------------
+    ('11. MIGRATE_RESIDENTIAL_COLLEGE', 'residential college on the profile',
+       exists (select 1 from information_schema.columns
+                where table_schema = 'public' and table_name = 'profiles'
+                  and column_name = 'residential_college'))
 )
 select step, item, case when ok then 'OK' else 'MISSING — re-run this file' end as result
 from checks

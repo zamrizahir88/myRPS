@@ -89,7 +89,7 @@ export const en = {
     emailPersonal: 'Personal email', emailOfficial: 'Official student email',
     phoneHome: 'Home telephone', phoneMobile: 'Mobile phone',
     addressLine: 'Permanent address', postcode: 'Postcode', city: 'City', state: 'State',
-    hostel: 'Accommodation', kinName: 'Next-of-kin name', kinRelation: 'Relationship',
+    hostel: 'Accommodation', college: 'Residential college', kinName: 'Next-of-kin name', kinRelation: 'Relationship',
     kinPhone: 'Next-of-kin phone', father: "Father's occupation", mother: "Mother's occupation",
     dependents: 'Number of dependents', parentAddress: "Parents' address",
     programme: 'Programme', intakeYear: 'Curriculum intake', intakeSemester: 'Semester intake',

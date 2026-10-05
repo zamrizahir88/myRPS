@@ -91,7 +91,7 @@ export const ms: Dict = {
     emailPersonal: 'E-mel peribadi', emailOfficial: 'E-mel rasmi pelajar',
     phoneHome: 'Telefon rumah', phoneMobile: 'Telefon bimbit',
     addressLine: 'Alamat tetap', postcode: 'Poskod', city: 'Bandar', state: 'Negeri',
-    hostel: 'Penginapan', kinName: 'Nama waris', kinRelation: 'Hubungan',
+    hostel: 'Penginapan', college: 'Kolej kediaman', kinName: 'Nama waris', kinRelation: 'Hubungan',
     kinPhone: 'Telefon waris', father: 'Pekerjaan bapa', mother: 'Pekerjaan ibu',
     dependents: 'Bilangan tanggungan', parentAddress: 'Alamat ibu bapa',
     programme: 'Program', intakeYear: 'Kurikulum ambilan', intakeSemester: 'Semester ambilan',

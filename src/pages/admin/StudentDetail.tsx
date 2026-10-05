@@ -367,6 +367,7 @@ export default function StudentDetail() {
           {field(t.profile.city, profile.city)}
           {field(t.profile.state, profile.state)}
           {field(t.profile.hostel, profile.hostel_status)}
+          {field(t.profile.college, profile.residential_college ?? null)}
           {field(t.profile.kinName, profile.kin_name)}
           {field(t.profile.kinRelation, profile.kin_relation)}
           {field(t.profile.kinPhone, profile.kin_phone)}
