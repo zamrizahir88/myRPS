@@ -252,7 +252,7 @@ courses without touching any code.
 **Backing up** — RPS Panel → Export CSV, once a semester before exams.
 
 **The free tier sleeps after 7 days of no use.** A semester break will do it.
-There is an automatic weekly ping in the repo that prevents this; it starts
+There is an automatic daily ping in the repo that prevents this; it starts
 working once Part 4 is done.
 
 **Adding a second admin** — Supabase → Table Editor → `admins` → Insert row →
