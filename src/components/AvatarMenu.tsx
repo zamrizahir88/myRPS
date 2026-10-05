@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { useTheme } from '../hooks/useTheme'
 import { Avatar } from './ui'
+import { useInstall } from './InstallApp'
 
 /**
  * Everything that is not a destination: who you are, which role you are
@@ -20,6 +21,7 @@ export default function AvatarMenu() {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const installer = useInstall()
 
   useEffect(() => {
     if (!open) return
@@ -101,6 +103,17 @@ export default function AvatarMenu() {
               {theme === 'dark' ? <IconSun /> : <IconMoon />}
               {theme === 'dark' ? t.nav.themeLight : t.nav.themeDark}
             </button>
+
+            {!installer.installed && (
+              <button
+                role="menuitem"
+                className={item}
+                onClick={() => { installer.start(); setOpen(false) }}
+              >
+                <IconInstall />
+                {t.install.menu}
+              </button>
+            )}
           </div>
 
           <div className="border-t p-1.5" style={{ borderColor: 'var(--border)' }}>
@@ -116,6 +129,9 @@ export default function AvatarMenu() {
           </div>
         </div>
       )}
+
+      {/* beside the dropdown, not in it: the dropdown closes on the same tap */}
+      {installer.help}
     </div>
   )
 }
@@ -129,4 +145,5 @@ const IconUser = () => <svg {...s}><circle cx="12" cy="8" r="4" /><path d="M4 21
 const IconGlobe = () => <svg {...s}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z" /></svg>
 const IconSun = () => <svg {...s}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
 const IconMoon = () => <svg {...s}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
+const IconInstall = () => <svg {...s}><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
 const IconExit = () => <svg {...s}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>

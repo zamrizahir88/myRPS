@@ -13,6 +13,7 @@ import { useAvatarUrls } from '../hooks/useAvatarUrls'
 import Greeting from '../components/Greeting'
 import { CohortCard, CohortStrip } from '../components/Cohort'
 import { usePresence } from '../context/PresenceContext'
+import { InstallBanner } from '../components/InstallApp'
 import type { LeaderboardRow, Subject } from '../lib/types'
 
 const EMOJI = ['👏', '🔥', '❤️', '💪'] as const
@@ -222,10 +223,14 @@ export default function Feed() {
       <Greeting subtitle={t.feed.subtitle} />
       {error && <Alert tone="critical">{error}</Alert>}
 
+      <InstallBanner />
+
       <CohortStrip members={presence.members} meId={profile?.id} avatarFor={avatarFor} />
 
+      {/* min-w-0: a grid column is otherwise as wide as its longest unbreakable
+          word, and one pasted link made the page wider than the phone */}
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {/* composer */}
           <div className="card">
             <div className="flex gap-3">
@@ -339,7 +344,7 @@ export default function Feed() {
                       )}
                       <span className="text-xs" style={{ color: 'var(--text-3)' }}>· {when(post.created_at)}</span>
                     </div>
-                    <p className="mt-1.5 whitespace-pre-wrap break-words text-sm">{post.body}</p>
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{post.body}</p>
                   </div>
                   {(post.user_id === profile?.id || isAdmin) && (
                     <button
@@ -405,7 +410,7 @@ export default function Feed() {
                               </button>
                             )}
                           </div>
-                          <p className="whitespace-pre-wrap break-words text-sm">{c.body}</p>
+                          <p className="whitespace-pre-wrap text-sm [overflow-wrap:anywhere]">{c.body}</p>
                         </div>
                       </div>
                     ))}
@@ -431,7 +436,7 @@ export default function Feed() {
         </div>
 
         {/* leaderboard alongside the feed rather than on its own tab */}
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <CohortCard members={presence.members} meId={profile?.id} avatarFor={avatarFor} />
 
           {!isAdmin && <RpsCard compact />}

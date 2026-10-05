@@ -347,6 +347,25 @@ export const en = {
     loginHint: 'Only you can see this. If a sign-in was not you, reset your password from the sign-in page and tell your RPS.',
     welcomeBack: 'Welcome back. Last login: {when}',
   },
+  install: {
+    menu: 'Install app',
+    bannerTitle: 'Install myRPS on your phone',
+    bannerBody: 'Opens from your home screen, full screen, like any other app.',
+    action: 'Install',
+    later: 'Not now',
+    helpTitle: 'Add myRPS to your home screen',
+    iosSteps: [
+      'Open this page in Safari.',
+      'Tap the Share button (the square with an arrow).',
+      'Choose "Add to Home Screen", then tap Add.',
+    ],
+    otherSteps: [
+      'Open your browser menu (⋮ or ☰).',
+      'Choose "Add to Home screen" or "Install app".',
+      'Confirm. myRPS then appears with your other apps.',
+    ],
+    done: 'Got it',
+  },
   common: {
     saved: 'Saved',
     loading: 'Loading…', save: 'Save', cancel: 'Cancel', close: 'Close',

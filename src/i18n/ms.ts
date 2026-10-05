@@ -349,6 +349,25 @@ export const ms: Dict = {
     loginHint: 'Hanya anda boleh melihat ini. Jika log masuk itu bukan anda, set semula kata laluan dari halaman log masuk dan maklumkan RPS anda.',
     welcomeBack: 'Selamat kembali. Log masuk terakhir: {when}',
   },
+  install: {
+    menu: 'Pasang aplikasi',
+    bannerTitle: 'Pasang myRPS pada telefon anda',
+    bannerBody: 'Buka terus dari skrin utama, skrin penuh, seperti aplikasi lain.',
+    action: 'Pasang',
+    later: 'Bukan sekarang',
+    helpTitle: 'Tambah myRPS ke skrin utama',
+    iosSteps: [
+      'Buka halaman ini dalam Safari.',
+      'Tekan butang Kongsi (petak dengan anak panah).',
+      'Pilih "Add to Home Screen", kemudian tekan Add.',
+    ],
+    otherSteps: [
+      'Buka menu pelayar anda (⋮ atau ☰).',
+      'Pilih "Add to Home screen" atau "Install app".',
+      'Sahkan. myRPS akan muncul bersama aplikasi lain anda.',
+    ],
+    done: 'Faham',
+  },
   common: {
     saved: 'Disimpan',
     loading: 'Memuatkan…', save: 'Simpan', cancel: 'Batal', close: 'Tutup',

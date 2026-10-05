@@ -62,7 +62,11 @@ export default function Layout() {
       ]
 
   return (
-    <div className="flex min-h-full flex-col">
+    // overflow-x-clip is a seat belt: whatever a page puts in it, the shell is
+    // never wider than the screen. A wider page is what lets a phone pan
+    // around it, and the header and tab bar slide out of view. (Not "hidden",
+    // which would make this box the thing the sticky header sticks to.)
+    <div className="flex min-h-full flex-col overflow-x-clip">
       {!online && (
         <div className="tint-warn px-4 py-1.5 text-center text-xs font-semibold">
           {t.nav.offline}
@@ -71,7 +75,12 @@ export default function Layout() {
 
       <header
         className="sticky top-0 z-40 border-b backdrop-blur"
-        style={{ borderColor: 'var(--border)', background: 'color-mix(in srgb, var(--surface) 88%, transparent)' }}
+        style={{
+          borderColor: 'var(--border)',
+          background: 'color-mix(in srgb, var(--surface) 88%, transparent)',
+          // installed on an iPhone, the page runs under the clock and the notch
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
       >
         <div className="mx-auto w-full max-w-6xl px-4">
           <div className="flex h-[4.25rem] items-center justify-between gap-3">
@@ -107,7 +116,7 @@ export default function Layout() {
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 md:pb-5">
+      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-5 pb-24 md:pb-5">
         <PresenceProvider>
           <Outlet />
         </PresenceProvider>
