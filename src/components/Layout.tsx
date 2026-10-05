@@ -8,6 +8,7 @@ import { Logo, Wordmark } from './Brand'
 import AvatarMenu from './AvatarMenu'
 import Footer from './Footer'
 import { PresenceProvider } from '../context/PresenceContext'
+import { NotificationBell, NotificationsProvider } from './Notifications'
 
 // An underline reads better than a filled pill on a short bar, and keeps the
 // brand colour for things that are actually actions.
@@ -61,11 +62,12 @@ export default function Layout() {
         { to: '/profile', label: t.nav.profile, icon: <IconUser /> },
       ]
 
+  // overflow-x-clip is a seat belt: whatever a page puts in it, the shell is
+  // never wider than the screen. A wider page is what lets a phone pan around
+  // it, and the header and tab bar slide out of view. (Not "hidden", which
+  // would make this box the thing the sticky header sticks to.)
   return (
-    // overflow-x-clip is a seat belt: whatever a page puts in it, the shell is
-    // never wider than the screen. A wider page is what lets a phone pan
-    // around it, and the header and tab bar slide out of view. (Not "hidden",
-    // which would make this box the thing the sticky header sticks to.)
+    <NotificationsProvider>
     <div className="flex min-h-full flex-col overflow-x-clip">
       {!online && (
         <div className="tint-warn px-4 py-1.5 text-center text-xs font-semibold">
@@ -93,7 +95,10 @@ export default function Layout() {
                 </p>
               </div>
             </div>
-            <AvatarMenu />
+            <div className="flex shrink-0 items-center gap-1">
+              <NotificationBell />
+              <AvatarMenu />
+            </div>
           </div>
 
           <nav className="hidden gap-1 pb-1 md:flex">
@@ -153,6 +158,7 @@ export default function Layout() {
       {/* keeps the badge string in use for screen readers on desktop */}
       <span className="sr-only">{pending > 0 ? f(t.nav.applicationsBadge, { n: pending }) : ''}</span>
     </div>
+    </NotificationsProvider>
   )
 }
 

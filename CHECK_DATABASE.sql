@@ -101,7 +101,20 @@ with checks(step, item, ok) as (
     ('11. MIGRATE_RESIDENTIAL_COLLEGE', 'residential college on the profile',
        exists (select 1 from information_schema.columns
                 where table_schema = 'public' and table_name = 'profiles'
-                  and column_name = 'residential_college'))
+                  and column_name = 'residential_college')),
+
+    -- ---- MIGRATE_PUSH.sql ---------------------------------------------------
+    ('12. MIGRATE_PUSH', 'phone subscriptions, closed to students',
+       to_regclass('public.push_subscriptions') is not null
+       and not has_table_privilege('authenticated', 'public.push_subscriptions', 'select')),
+    ('12. MIGRATE_PUSH', 'posts and sign-ups trigger a notification',
+       (select count(*) from pg_trigger
+         where tgname in ('posts_push', 'post_comments_push', 'profiles_push')) = 3),
+    ('12. MIGRATE_PUSH', 'the database can call out (pg_net)',
+       exists (select 1 from pg_extension where extname = 'pg_net')),
+    ('12. MIGRATE_PUSH', 'public key and function address filled in',
+       coalesce((select value from public.app_settings where key = 'push_public_key'), '') <> ''
+       and coalesce((select value from public.app_settings where key = 'push_function_url'), '') <> '')
 )
 select step, item, case when ok then 'OK' else 'MISSING — re-run this file' end as result
 from checks

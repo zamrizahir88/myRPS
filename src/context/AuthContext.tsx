@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import type { Profile } from '../lib/types'
+import { releasePush } from '../lib/push'
 
 interface AuthValue {
   session: Session | null
@@ -142,6 +143,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       refreshProfile: () => loadProfile(session?.user.id),
       signOut: async () => {
+        // While still signed in: this phone must stop receiving what is
+        // meant for the person leaving it.
+        await releasePush()
         await supabase.auth.signOut()
         setProfile(null)
         setIsAdmin(false)

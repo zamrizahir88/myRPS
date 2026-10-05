@@ -14,6 +14,7 @@ import Greeting from '../components/Greeting'
 import { CohortCard, CohortStrip } from '../components/Cohort'
 import { usePresence } from '../context/PresenceContext'
 import { InstallBanner } from '../components/InstallApp'
+import { NotificationBanner } from '../components/Notifications'
 import type { LeaderboardRow, Subject } from '../lib/types'
 
 const EMOJI = ['👏', '🔥', '❤️', '💪'] as const
@@ -224,6 +225,7 @@ export default function Feed() {
       {error && <Alert tone="critical">{error}</Alert>}
 
       <InstallBanner />
+      <NotificationBanner />
 
       <CohortStrip members={presence.members} meId={profile?.id} avatarFor={avatarFor} />
 
