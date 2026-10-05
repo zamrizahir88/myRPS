@@ -7,6 +7,7 @@ import { useOnline } from '../hooks/useOnline'
 import { Logo, Wordmark } from './Brand'
 import AvatarMenu from './AvatarMenu'
 import Footer from './Footer'
+import { PresenceProvider } from '../context/PresenceContext'
 
 // An underline reads better than a filled pill on a short bar, and keeps the
 // brand colour for things that are actually actions.
@@ -107,7 +108,9 @@ export default function Layout() {
       )}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 pb-24 md:pb-5">
-        <Outlet />
+        <PresenceProvider>
+          <Outlet />
+        </PresenceProvider>
       </main>
 
       <Footer />

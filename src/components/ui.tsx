@@ -156,7 +156,36 @@ export function initialsOf(name: string | null): string {
   return picked.join('') || name.trim()[0]?.toUpperCase() || '?'
 }
 
-export function Avatar({ name, url, size = 36 }: { name: string | null; url?: string | null; size?: number }) {
+/**
+ * Pass `online` (true or false) wherever the person might be here right now:
+ * the wrapper is then always present, so the photo does not remount and flash
+ * each time somebody comes or goes. Leave it out for a plain avatar.
+ */
+export function Avatar({
+  name, url, size = 36, online,
+}: { name: string | null; url?: string | null; size?: number; online?: boolean }) {
+  if (online === undefined) return <AvatarFace name={name} url={url} size={size} />
+  const dot = Math.max(9, Math.round(size * 0.27))
+  return (
+    <span className="relative inline-flex shrink-0">
+      <AvatarFace name={name} url={url} size={size} />
+      {online && (
+        <span
+          className="absolute bottom-0 right-0 rounded-full"
+          style={{
+            width: dot, height: dot,
+            background: 'var(--status-good)',
+            // a ring in the card colour, so the dot reads on a photo
+            boxShadow: '0 0 0 2px var(--surface)',
+          }}
+          aria-hidden
+        />
+      )}
+    </span>
+  )
+}
+
+function AvatarFace({ name, url, size }: { name: string | null; url?: string | null; size: number }) {
   if (url) {
     return (
       <img

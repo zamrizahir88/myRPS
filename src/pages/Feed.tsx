@@ -11,6 +11,8 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh'
 import { useToast } from '../components/Toast'
 import { useAvatarUrls } from '../hooks/useAvatarUrls'
 import Greeting from '../components/Greeting'
+import { CohortCard, CohortStrip } from '../components/Cohort'
+import { usePresence } from '../context/PresenceContext'
 import type { LeaderboardRow, Subject } from '../lib/types'
 
 const EMOJI = ['👏', '🔥', '❤️', '💪'] as const
@@ -38,6 +40,7 @@ interface Reaction { post_id: string; user_id: string; emoji: Emoji }
 export default function Feed() {
   const { t, locale } = useI18n()
   const { profile, isAdmin, avatarUrl } = useAuth()
+  const presence = usePresence()
 
   const [posts, setPosts] = useState<Post[]>([])
   const [comments, setComments] = useState<Comment[]>([])
@@ -219,6 +222,8 @@ export default function Feed() {
       <Greeting subtitle={t.feed.subtitle} />
       {error && <Alert tone="critical">{error}</Alert>}
 
+      <CohortStrip members={presence.members} meId={profile?.id} avatarFor={avatarFor} />
+
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-4">
           {/* composer */}
@@ -313,7 +318,10 @@ export default function Feed() {
               >
                 <header className="flex items-start gap-3">
                   <Link to={`/u/${post.user_id}`} aria-label={names.get(post.user_id) ?? ''}>
-                    <Avatar name={names.get(post.user_id) ?? null} url={avatarFor(post.user_id)} size={40} />
+                    <Avatar
+                      name={names.get(post.user_id) ?? null} url={avatarFor(post.user_id)} size={40}
+                      online={presence.isOnline(post.user_id)}
+                    />
                   </Link>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -378,7 +386,10 @@ export default function Feed() {
                   <div className="mt-3 space-y-3 border-t pt-3" style={{ borderColor: 'var(--border)' }}>
                     {thread.map((c) => (
                       <div key={c.id} className="flex gap-2">
-                        <Avatar name={names.get(c.user_id) ?? null} url={avatarFor(c.user_id)} size={28} />
+                        <Avatar
+                          name={names.get(c.user_id) ?? null} url={avatarFor(c.user_id)} size={28}
+                          online={presence.isOnline(c.user_id)}
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-baseline gap-2">
                             <span className="text-xs font-bold">{names.get(c.user_id) ?? '—'}</span>
@@ -421,6 +432,8 @@ export default function Feed() {
 
         {/* leaderboard alongside the feed rather than on its own tab */}
         <aside className="space-y-4">
+          <CohortCard members={presence.members} meId={profile?.id} avatarFor={avatarFor} />
+
           {!isAdmin && <RpsCard compact />}
 
           <div className="card">
@@ -436,7 +449,7 @@ export default function Feed() {
                   <span className="tnum w-5 shrink-0 text-xs font-bold" style={{ color: 'var(--text-3)' }}>
                     {i + 1}
                   </span>
-                  <Avatar name={r.full_name} url={avatarFor(r.user_id)} size={26} />
+                  <Avatar name={r.full_name} url={avatarFor(r.user_id)} size={26} online={presence.isOnline(r.user_id)} />
                   <span className="min-w-0 flex-1 truncate text-sm">{r.full_name ?? '—'}</span>
                   {r.badge_pillars_master && <span title={t.community.pillarsMaster}>★</span>}
                   {r.badge_improving && <span title={t.community.improving}>▲</span>}

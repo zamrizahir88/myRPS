@@ -206,6 +206,24 @@ export interface LeaderboardRow {
   badge_improving: boolean
 }
 
+/** A row of member_presence: who is here, and when they last were. */
+export interface MemberPresence {
+  user_id: string
+  full_name: string | null
+  avatar_path: string | null
+  is_staff: boolean
+  last_active_at: string | null
+  /** Decided by the database clock, not the phone's. */
+  is_online: boolean
+}
+
+export interface UserActivity {
+  user_id: string
+  last_active_at: string
+  last_login_at: string | null
+  prev_login_at: string | null
+}
+
 // Minimal shape for the typed client; the app reads/writes through the
 // interfaces above rather than a generated schema.
 export type Database = any

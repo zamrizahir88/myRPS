@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n'
 import { useAvatarUrls } from '../hooks/useAvatarUrls'
+import { usePresence } from '../context/PresenceContext'
+import { activeLabel } from '../lib/presence'
 import { Avatar } from './ui'
 
 interface RpsInfo {
@@ -21,8 +23,9 @@ interface RpsInfo {
 
 /** How a student actually reaches their advisor. */
 export default function RpsCard({ compact = false }: { compact?: boolean }) {
-  const { t, f } = useI18n()
+  const { t, f, locale } = useI18n()
   const { profile } = useAuth()
+  const presence = usePresence()
   const [rps, setRps] = useState<RpsInfo | null>(null)
 
   useEffect(() => {
@@ -37,6 +40,7 @@ export default function RpsCard({ compact = false }: { compact?: boolean }) {
 
   const url = rps.avatar_path ? avatars.get(rps.avatar_path) ?? null : null
   const displayName = [rps.title, rps.full_name].filter(Boolean).join(' ')
+  const here = presence.byId.get(rps.user_id)
   const waText = encodeURIComponent(
     f(t.dash.whatsappMessage, {
       name: profile?.full_name ?? '', matric: profile?.matric_no ?? '',
@@ -48,7 +52,7 @@ export default function RpsCard({ compact = false }: { compact?: boolean }) {
       <h2 className="section-title mb-3">{t.rps.title}</h2>
 
       <div className="flex gap-3">
-        <Avatar name={rps.full_name} url={url} size={compact ? 48 : 60} />
+        <Avatar name={rps.full_name} url={url} size={compact ? 48 : 60} online={here?.is_online ?? false} />
         <div className="min-w-0 flex-1">
           <p className="font-display text-base font-extrabold leading-tight">{displayName}</p>
           {rps.position_title && (
@@ -56,6 +60,14 @@ export default function RpsCard({ compact = false }: { compact?: boolean }) {
           )}
           {rps.department && (
             <p className="mt-0.5 text-xs" style={{ color: 'var(--text-3)' }}>{rps.department}</p>
+          )}
+          {here && (
+            <p
+              className="mt-1 text-[11px] font-semibold"
+              style={{ color: here.is_online ? 'var(--tint-good-ink)' : 'var(--text-3)' }}
+            >
+              {activeLabel(here, t, f, locale)}
+            </p>
           )}
         </div>
       </div>

@@ -86,7 +86,16 @@ with checks(step, item, ok) as (
     ('9. MIGRATE_EXEMPTIONS', 'credits split into taken and exempted',
        (select count(*) from information_schema.columns
          where table_schema = 'public' and table_name = 'student_summary'
-           and column_name in ('credits_taken','credits_exempted','current_semester_credits')) = 3)
+           and column_name in ('credits_taken','credits_exempted','current_semester_credits')) = 3),
+
+    -- ---- MIGRATE_PRESENCE.sql -----------------------------------------------
+    ('10. MIGRATE_PRESENCE', 'who is online / last active',
+       to_regclass('public.member_presence') is not null),
+    ('10. MIGRATE_PRESENCE', 'last login on your own profile',
+       to_regprocedure('public.record_login()') is not null),
+    ('10. MIGRATE_PRESENCE', 'activity times cannot be edited by students',
+       to_regclass('public.user_activity') is not null
+       and not has_table_privilege('authenticated', 'public.user_activity', 'insert, update, delete'))
 )
 select step, item, case when ok then 'OK' else 'MISSING — re-run this file' end as result
 from checks

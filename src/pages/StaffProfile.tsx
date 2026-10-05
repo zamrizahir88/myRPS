@@ -7,6 +7,7 @@ import { useUnsavedChanges } from '../hooks/useUnsavedChanges'
 import { downscaleToJpeg } from '../lib/image'
 import { Alert, Avatar, Field } from '../components/ui'
 import RpsCard from '../components/RpsCard'
+import LoginActivity from '../components/LoginActivity'
 import type { Profile } from '../lib/types'
 
 /**
@@ -164,6 +165,9 @@ export default function StaffProfile() {
           {t.staff.seenByStudents}
         </p>
         <RpsCard />
+        <div className="mt-5">
+          <LoginActivity />
+        </div>
       </aside>
     </div>
   )

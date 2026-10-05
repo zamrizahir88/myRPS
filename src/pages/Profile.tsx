@@ -6,6 +6,7 @@ import { downscaleToJpeg } from '../lib/image'
 import { Alert, Avatar, Field, Modal, Spinner } from '../components/ui'
 import StaffProfile from './StaffProfile'
 import { useToast } from '../components/Toast'
+import LoginActivity from '../components/LoginActivity'
 import { useUnsavedChanges } from '../hooks/useUnsavedChanges'
 import type { Profile } from '../lib/types'
 
@@ -165,6 +166,8 @@ export default function ProfilePage() {
       {error && <Alert tone="critical">{error}</Alert>}
       {saved && <Alert tone="good">{t.profile.saved}</Alert>}
       {!profile.profile_completed && <Alert tone="warning">{t.profile.incomplete}</Alert>}
+
+      <LoginActivity />
 
       <section className="card">
         <h2 className="section-title mb-4">{t.profile.photo}</h2>
@@ -327,6 +330,9 @@ export default function ProfilePage() {
         </div>
 
         <Alert tone="info">{t.sharing.never}</Alert>
+        <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-3)' }}>
+          {t.presence.visibleNote}
+        </p>
       </section>
 
       <section className="card">

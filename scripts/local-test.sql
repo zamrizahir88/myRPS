@@ -792,3 +792,49 @@ begin
   end if;
   raise notice 'PASS: the repeat still counts toward the semester load';
 end $$;
+
+\echo '--- presence: times are the server''s, and only your own ---'
+reset role;
+set role anon;
+do $$
+begin
+  perform public.touch_activity();
+  raise exception 'FAIL: a signed-out visitor could mark themselves online';
+exception
+  when insufficient_privilege then raise notice 'PASS: presence refuses signed-out visitors';
+end $$;
+reset role;
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-0000-0000-0000000000b1';
+
+do $$
+begin
+  insert into public.user_activity (user_id, last_active_at)
+  values ('00000000-0000-0000-0000-0000000000b2', now());
+  raise exception 'FAIL: a student put a classmate online by hand';
+exception
+  when insufficient_privilege then raise notice 'PASS: user_activity cannot be written directly';
+end $$;
+
+do $$
+declare
+  n int;
+  first_login timestamptz;
+  again timestamptz;
+  kept timestamptz;
+begin
+  perform public.touch_activity();
+  select count(*) into n from public.user_activity;
+  if n <> 1 then raise exception 'FAIL: a student read % activity rows, expected only their own', n; end if;
+  raise notice 'PASS: a heartbeat records the caller, who sees only their own row';
+
+  first_login := public.record_login();
+  again := public.record_login();
+  select prev_login_at into kept from public.user_activity where user_id = auth.uid();
+  if first_login is not null or again is null or kept <> again then
+    raise exception 'FAIL: record_login did not hand back the previous sign-in';
+  end if;
+  raise notice 'PASS: signing in reports the sign-in before it';
+end $$;
+reset role;

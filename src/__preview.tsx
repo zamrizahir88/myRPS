@@ -9,6 +9,8 @@ import Footer from './components/Footer'
 import AuthHero from './components/AuthHero'
 import { SkeletonCard } from './components/Skeleton'
 import EmptyState, { EmptyIcons } from './components/EmptyState'
+import { CohortCard, CohortStrip, PersonRow } from './components/Cohort'
+import type { MemberPresence } from './lib/types'
 import './index.css'
 
 /**
@@ -16,6 +18,24 @@ import './index.css'
  * audit can walk all of them in both themes.
  */
 const TINTS = ['tint-good', 'tint-warn', 'tint-bad', 'tint-info', 'tint-muted']
+// Who is here: online, recently active, long gone, and never signed in.
+const ago = (mins: number) => new Date(Date.now() - mins * 60000).toISOString()
+const person = (n: number, full_name: string, mins: number | null, is_staff = false): MemberPresence => ({
+  user_id: String(n), full_name, avatar_path: null, is_staff,
+  last_active_at: mins === null ? null : ago(mins), is_online: mins !== null && mins < 3,
+})
+const COHORT: MemberPresence[] = [
+  person(1, 'Nur Aisyah binti Kamal', 0),
+  person(2, 'Ts. Dr. Mohd Zamri bin Zahir Ahmad', 1, true),
+  person(3, 'Muhammad Rusydi bin Rahimie', 1),
+  person(4, 'Lim Wei Jie', 2),
+  person(5, 'Siti Hajar binti Osman', 12),
+  person(6, 'Arvind a/l Kumar', 95),
+  person(7, 'Nurul Iman binti Hassan', 60 * 26),
+  person(8, 'Ahmad Faiz bin Roslan', 60 * 24 * 12),
+  person(9, 'Tan Mei Ling', null),
+]
+
 const scores = {
   linguistic: 31, logical: 26, musical: 14, kinesthetic: 22,
   spatial: 35, interpersonal: 19, intrapersonal: 28,
@@ -67,6 +87,23 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <span className="chip tint-muted">💬 4 Komen</span>
           </div>
         </article>
+
+        {/* presence: the strip shows on phones, the card on wide screens */}
+        <CohortStrip members={COHORT} meId="1" avatarFor={() => null} />
+        <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
+          <ul className="card min-w-0 px-2 py-2">
+            {COHORT.map((m) => (
+              <PersonRow key={m.user_id} m={m} url={null} locale="ms" size={40} isMe={m.user_id === '1'} />
+            ))}
+          </ul>
+          <aside><CohortCard members={COHORT} meId="1" avatarFor={() => null} /></aside>
+        </div>
+        <div className="card flex items-center gap-4">
+          <Avatar name="Nur Aisyah" size={88} online />
+          <Avatar name="Lim Wei Jie" size={40} online />
+          <Avatar name="Arvind Kumar" size={28} online />
+          <Avatar name="Tan Mei Ling" size={40} online={false} />
+        </div>
 
         <div className="card space-y-2">
           <p className="text-sm">Body text on a card.</p>

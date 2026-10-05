@@ -13,6 +13,7 @@ import Academic from './pages/Academic'
 import Psychometric from './pages/Psychometric'
 import Pillars from './pages/Pillars'
 import Feed from './pages/Feed'
+import People from './pages/People'
 import AdminLayout from './pages/admin/AdminLayout'
 import Applications from './pages/admin/Applications'
 import StudentList from './pages/admin/StudentList'
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="psychometric" element={<Psychometric />} />
         <Route path="pillars" element={<Pillars />} />
         <Route path="feed" element={<Feed />} />
+        <Route path="people" element={<People />} />
         <Route path="community" element={<Navigate to="/feed" replace />} />
 
         <Route path="admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>

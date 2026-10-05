@@ -7,9 +7,12 @@ import { describeAuthError } from '../lib/authErrors'
 import { Alert, Field } from '../components/ui'
 import PasswordField from '../components/PasswordField'
 import AuthShell from '../components/AuthShell'
+import { useToast } from '../components/Toast'
+import { loginTime } from '../lib/presence'
 
 export default function Login() {
-  const { t } = useI18n()
+  const { t, f, locale } = useI18n()
+  const { show } = useToast()
   const { session, loading, sessionExpired, clearSessionExpired } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
@@ -30,7 +33,17 @@ export default function Login() {
       email: email.trim(), password,
     })
     setBusy(false)
-    if (!err) { clearSessionExpired(); navigate('/'); return }
+    if (!err) {
+      clearSessionExpired()
+      // Not awaited: a slow or missing reply must never hold up signing in.
+      void supabase.rpc('record_login').then(({ data }) => {
+        if (typeof data === 'string') {
+          show(f(t.presence.welcomeBack, { when: loginTime(data, locale) }), 'info')
+        }
+      })
+      navigate('/')
+      return
+    }
     const problem = describeAuthError(err.message, t)
     setError(problem.message)
     setNeedsConfirm(problem.kind === 'unconfirmed')

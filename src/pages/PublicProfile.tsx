@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useI18n } from '../i18n'
 import { useAvatarUrls } from '../hooks/useAvatarUrls'
+import { usePresence } from '../context/PresenceContext'
+import { activeLabel } from '../lib/presence'
 import { Avatar } from '../components/ui'
 import RpsCard from '../components/RpsCard'
 import { SkeletonCard } from '../components/Skeleton'
@@ -27,7 +29,8 @@ interface PublicProfile {
 /** What a classmate sees. Everything here is opt-in, field by field. */
 export default function PublicProfilePage() {
   const { id } = useParams<{ id: string }>()
-  const { t, locale } = useI18n()
+  const { t, f, locale } = useI18n()
+  const presence = usePresence()
   const [person, setPerson] = useState<PublicProfile | null>(null)
   const [isRps, setIsRps] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -74,6 +77,7 @@ export default function PublicProfilePage() {
   const avatars = useAvatarUrls([person.avatar_path])
   const url = person.avatar_path ? avatars.get(person.avatar_path) ?? null : null
   const def = person.persona ? DEFINITIONS[person.persona] : null
+  const here = presence.byId.get(person.user_id)
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
@@ -83,11 +87,19 @@ export default function PublicProfilePage() {
 
       <div className="card text-center">
         <div className="flex justify-center">
-          <Avatar name={person.full_name} url={url} size={88} />
+          <Avatar name={person.full_name} url={url} size={88} online={here?.is_online ?? false} />
         </div>
         <h1 className="mt-3 font-display text-xl font-extrabold tracking-tight">
           {person.full_name ?? '—'}
         </h1>
+        {here && (
+          <p
+            className="mt-1 text-xs font-semibold"
+            style={{ color: here.is_online ? 'var(--tint-good-ink)' : 'var(--text-3)' }}
+          >
+            {activeLabel(here, t, f, locale)}
+          </p>
+        )}
         {person.study_year && (
           <p className="mt-1 text-sm" style={{ color: 'var(--text-2)' }}>
             {locale === 'ms' ? 'Tahun' : 'Year'} {person.study_year} ·{' '}
