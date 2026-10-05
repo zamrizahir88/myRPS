@@ -49,6 +49,10 @@ export default function PublicProfilePage() {
     })()
   }, [id])
 
+  // Above the early returns: a hook that only runs once the profile has
+  // loaded changes the hook count between renders, and React stops the page.
+  const avatars = useAvatarUrls([person?.avatar_path])
+
   if (loading) return <SkeletonCard lines={4} />
 
   if (isRps) {
@@ -74,7 +78,6 @@ export default function PublicProfilePage() {
     )
   }
 
-  const avatars = useAvatarUrls([person.avatar_path])
   const url = person.avatar_path ? avatars.get(person.avatar_path) ?? null : null
   const def = person.persona ? DEFINITIONS[person.persona] : null
   const here = presence.byId.get(person.user_id)
