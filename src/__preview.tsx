@@ -34,6 +34,7 @@ const COHORT: MemberPresence[] = [
   person(7, 'Nurul Iman binti Hassan', 60 * 26),
   person(8, 'Ahmad Faiz bin Roslan', 60 * 24 * 12),
   person(9, 'Tan Mei Ling', null),
+  person(10, 'Demo Student', 60 * 5),
 ]
 
 const scores = {
