@@ -102,7 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (active) setLoading(false)
     })
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, next) => {
+    // Not async, and nothing in it waits on Supabase. The library runs this
+    // callback while holding its own session lock, and every query waits for
+    // that lock — so awaiting a query here waits on itself, forever. It struck
+    // after a phone came back to the app and the token refreshed: from then on
+    // no request left the page, and "Save profile" sat greyed out.
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (!active) return
 
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
@@ -119,8 +124,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_OUT' && session) setSessionExpired(false)
 
       setSession(next)
-      await loadProfile(next?.user.id)
-      setLoading(false)
+      // After the callback returns and the lock is released.
+      setTimeout(() => {
+        if (!active) return
+        void loadProfile(next?.user.id).then(() => { if (active) setLoading(false) })
+      }, 0)
     })
 
     return () => {
